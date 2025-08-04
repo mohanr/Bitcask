@@ -1,0 +1,6 @@
+(library
+ (name test_bitcask)
+ (libraries fmt bitcask eio_main eio.mock)
+ (inline_tests)
+ (preprocess (pps ppx_deriving.show ppx_inline_test ppx_assert ppx_expect))
+ (modules test_bitcask test_store))

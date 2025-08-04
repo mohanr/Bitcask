@@ -1,0 +1,12 @@
+(include_subdirs unqualified)
+(env
+ (dev
+  (flags (:standard -warn-error -8-11-69-37-34-33-27-32-26-66))
+ ))
+(library
+ (name bitcask)
+ (preprocess (pps ppx_deriving.show))
+ (libraries hex fmt checkseum base containers batteries
+            logs logs.fmt  eio_main )
+ (modules utils wal_store datastore adaptive_radix_tree)
+)
