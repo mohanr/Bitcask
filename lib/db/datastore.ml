@@ -10,53 +10,21 @@ end
 
 module Database (Wal : WalOperator) = struct
 
-type 'a kv = { key : Bytes.t list; value : 'a }
-
-
-type key_block_offset = {
-	offset   :   int64;
-	block_number :int64;
-	size     :   int64;
-	path     :   string;
-	timestamp   :   int64;
-}
-
-
-module BlockMap = CCMap.Make(Entrykeyvalue)
-type blocks =  Blockoffset_pair_key of string BlockMap.t
-
-type segment = {
-	closed       :      bool;
-	currentBlockNumber :int64;
-	currentBlockOffset :int64;
-	path              : string;
-	blocks           :  blocks
-}
-and
-blockoffset_pair = {startoffset : int64; endoffset :  int64; filePath  :  string} module  Blockoffset_pair_key = struct type t = blockoffset_pair
-
-    let compare offset_pair offset_pair1 =
-      match offset_pair, offset_pair1 with
-      | _ , _
-       ->  if Int64.compare  offset_pair.startoffset  offset_pair1.startoffset  > 0
-             then -1
-           else if  Int64.compare offset_pair.startoffset  offset_pair1.startoffset < 0
-             then 1 else 0
- end
 let create_entry_map = Wal.create_entry_map
-module BlockOffsetMap =CCMap.Make(Blockoffset_pair_key)
+
+
 end
 
 let deleted_flag = 98
 
-   let mutex = Eio.Mutex.create()
-   let last_offset = Atomic.make 0
+let mutex = Eio.Mutex.create()
+let last_offset = Atomic.make 0
 
-   let get_last_offset =
-     Atomic.get last_offset
+let get_last_offset =
+  Atomic.get last_offset
 
-   let set_last_offset offset =
-     Atomic.set last_offset offset
+let set_last_offset offset =
+  Atomic.set last_offset offset
 
 
 
