@@ -8,5 +8,5 @@
  (preprocess (pps ppx_deriving.show))
  (libraries hex fmt checkseum base containers batteries
             logs logs.fmt  eio_main )
- (modules utils wal_store datastore adaptive_radix_tree)
+ (modules types utils segment wal_store datastore adaptive_radix_tree)
 )

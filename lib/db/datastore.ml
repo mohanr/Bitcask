@@ -1,6 +1,7 @@
 open Containers
 open Eio.Std
 open Bitcask__Wal_store.DataEntryOp
+open Bitcask__Segment
 
 
 module type WalOperator =

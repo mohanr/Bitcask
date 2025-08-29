@@ -52,7 +52,6 @@ let%expect_test "Test Set and Get keys"=
   let bytes = Buffer.to_bytes buffer in
   let entry = Marshal.from_bytes bytes 0 in
   Fmt.pr " %a\n"   pp_entry entry ;
-  Fmt.pr " %a\n"   pp_entry entry ;
   [%expect {|
     CRC :[ 8 ]
     Key :[ 8 ]
@@ -69,21 +68,7 @@ let%expect_test "Test Set and Get keys"=
       key = "\002\000\000\000\000\000\000\000";
       value = "\002\000\000\000\000\000\000\000";
       deleted = "\002\000\000\000\000\000\000\000"; offset = 2L; size = 36L;
-      tstamp = 1949214460125L; keysize = 2L; valuesize = 2L }
-     { Wal_store.Entry.checksum =
-                                                                 1215298682l;
-                                                                 key =
-                                                                 "\002\000\000\000\000\000\000\000";
-                                                                 value =
-                                                                 "\002\000\000\000\000\000\000\000";
-                                                                 deleted =
-                                                                 "\002\000\000\000\000\000\000\000";
-                                                                 offset = 2L;
-                                                                 size = 36L;
-                                                                 tstamp =
-                                                                 1949214460125L;
-                                                                 keysize = 2L;
-                                                                 valuesize = 2L }
+      tstamp = 8377631122833L; keysize = 2L; valuesize = 2L }
     |}]
 
 let%expect_test "Check sizes to decide offsets"=
