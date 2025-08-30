@@ -1,7 +1,9 @@
 open Containers
 open Eio.Std
 open Bitcask__Wal_store.DataEntryOp
+open Bitcask__Adaptive_radix_tree
 open Bitcask__Segment
+open CCMap
 
 
 module type WalOperator =
@@ -27,7 +29,33 @@ let get_last_offset =
 let set_last_offset offset =
   Atomic.set last_offset offset
 
+module  Segmentsmap = struct
+  type t = string
+  let compare dirpath dirpath1 =
+    String.compare dirpath dirpath1
+end
 
+module SegmentMap = CCMap.Make(Segmentsmap)
+
+type data_store ={
+	dirpath : string;
+	lastoffset : int Atomic.t;
+	mu        :  Eio.Mutex.t;
+	segments  : int64 SegmentMap.t;
+}
+let create_data_store dirpath  =
+  let m =
+    SegmentMap.empty
+    |> SegmentMap.add dirpath (Int64.of_int deleted_flag)
+ in
+      let data_store ={
+          dirpath = dirpath;
+          lastoffset =  Atomic.make 0;
+          mu        =   Eio.Mutex.create();
+          segments  = m;
+      }
+      in
+      data_store
 
 module DatabaseOp =
 Database(struct
