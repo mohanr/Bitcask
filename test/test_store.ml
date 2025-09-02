@@ -9,16 +9,16 @@ module type KEYVALUE = sig
   val flow_type : flow
 end
 
-(* module type DataFlow = sig *)
-(*   type value *)
-(*   val flow : value *)
-(* end *)
+module type DataFlow = sig
+  type value
+  val flow : value
+end
 
-(* let make (type f) flow : (module DataFlow with type value = f) = *)
-(*   (module struct *)
-(*     type value  = f *)
-(*     let flow = flow *)
-(*   end) *)
+let make (type f) flow : (module DataFlow with type value = f) =
+  (module struct
+    type value  = f
+    let flow = flow
+  end)
 
 let create_keyvalue  (type t) (type f) k v flow  =
   let module Key_value = struct
@@ -35,7 +35,8 @@ let write_to_stdout stdout bytes =
   Eio.Buf_write.bytes bw bytes
 
 let test_write_entry buffer (module M : KEYVALUE with type key_value = int and type flow = Eio_mock.Flow.t) =
-  let bytes = (Marshal.to_bytes (entry_handler (create_entry_map M.key M.value))  []) in
+  let new_db = create_data_store "~/Documents/rays/Bitcask/bitcask/" in
+  let bytes = (Marshal.to_bytes (entry_handler (create_entry_map new_db M.key M.value))  []) in
   Fmt.pr " Length %d\n"   (Bytes.length bytes);
   let _ = write_to_stdout (Eio.Flow.buffer_sink buffer) bytes
   in
@@ -68,7 +69,7 @@ let%expect_test "Test Set and Get keys"=
       key = "\002\000\000\000\000\000\000\000";
       value = "\002\000\000\000\000\000\000\000";
       deleted = "\002\000\000\000\000\000\000\000"; offset = 2L; size = 36L;
-      tstamp = 8377631122833L; keysize = 2L; valuesize = 2L }
+      tstamp = 7739713889250L; keysize = 2L; valuesize = 2L }
     |}]
 
 let%expect_test "Check sizes to decide offsets"=

@@ -8,47 +8,35 @@ let%expect_test _=
           |  node ->
             Array.iter (fun n -> Printf.printf "%s" (Format.asprintf "%a" pp_node n)) node;
   [%expect {|
-    (Adaptive_radix_tree.MakeRadixNode.Inner_node
-       ((Adaptive_radix_tree.MakeRadixNode.Prefix (
+    (Types.MakeRadixNode.Inner_node
+       ((Types.MakeRadixNode.Prefix (
            ["\000"; "\000"; "\000"; "\000"; "\000"; "\000"; "\000"; "\000";
              "\000"; "\000"],
            0, 0)),
-        (Adaptive_radix_tree.MakeRadixNode.Node4 0),
-        ["\000"; "\000"; "\000"; "\000"],
-        Adaptive_radix_tree.MakeRadixNode.Empty,
-        Adaptive_radix_tree.MakeRadixNode.Empty,
-        Adaptive_radix_tree.MakeRadixNode.Empty,
-        Adaptive_radix_tree.MakeRadixNode.Empty))(Adaptive_radix_tree.MakeRadixNode.Inner_node
-       ((Adaptive_radix_tree.MakeRadixNode.Prefix (
+        (Types.MakeRadixNode.Node4 0), ["\000"; "\000"; "\000"; "\000"],
+        Types.MakeRadixNode.Empty, Types.MakeRadixNode.Empty,
+        Types.MakeRadixNode.Empty, Types.MakeRadixNode.Empty))(Types.MakeRadixNode.Inner_node
+       ((Types.MakeRadixNode.Prefix (
            ["\000"; "\000"; "\000"; "\000"; "\000"; "\000"; "\000"; "\000";
              "\000"; "\000"],
            0, 0)),
-        (Adaptive_radix_tree.MakeRadixNode.Node4 0),
-        ["\000"; "\000"; "\000"; "\000"],
-        Adaptive_radix_tree.MakeRadixNode.Empty,
-        Adaptive_radix_tree.MakeRadixNode.Empty,
-        Adaptive_radix_tree.MakeRadixNode.Empty,
-        Adaptive_radix_tree.MakeRadixNode.Empty))(Adaptive_radix_tree.MakeRadixNode.Inner_node
-       ((Adaptive_radix_tree.MakeRadixNode.Prefix (
+        (Types.MakeRadixNode.Node4 0), ["\000"; "\000"; "\000"; "\000"],
+        Types.MakeRadixNode.Empty, Types.MakeRadixNode.Empty,
+        Types.MakeRadixNode.Empty, Types.MakeRadixNode.Empty))(Types.MakeRadixNode.Inner_node
+       ((Types.MakeRadixNode.Prefix (
            ["\000"; "\000"; "\000"; "\000"; "\000"; "\000"; "\000"; "\000";
              "\000"; "\000"],
            0, 0)),
-        (Adaptive_radix_tree.MakeRadixNode.Node4 0),
-        ["\000"; "\000"; "\000"; "\000"],
-        Adaptive_radix_tree.MakeRadixNode.Empty,
-        Adaptive_radix_tree.MakeRadixNode.Empty,
-        Adaptive_radix_tree.MakeRadixNode.Empty,
-        Adaptive_radix_tree.MakeRadixNode.Empty))(Adaptive_radix_tree.MakeRadixNode.Inner_node
-       ((Adaptive_radix_tree.MakeRadixNode.Prefix (
+        (Types.MakeRadixNode.Node4 0), ["\000"; "\000"; "\000"; "\000"],
+        Types.MakeRadixNode.Empty, Types.MakeRadixNode.Empty,
+        Types.MakeRadixNode.Empty, Types.MakeRadixNode.Empty))(Types.MakeRadixNode.Inner_node
+       ((Types.MakeRadixNode.Prefix (
            ["\000"; "\000"; "\000"; "\000"; "\000"; "\000"; "\000"; "\000";
              "\000"; "\000"],
            0, 0)),
-        (Adaptive_radix_tree.MakeRadixNode.Node4 0),
-        ["\000"; "\000"; "\000"; "\000"],
-        Adaptive_radix_tree.MakeRadixNode.Empty,
-        Adaptive_radix_tree.MakeRadixNode.Empty,
-        Adaptive_radix_tree.MakeRadixNode.Empty,
-        Adaptive_radix_tree.MakeRadixNode.Empty))
+        (Types.MakeRadixNode.Node4 0), ["\000"; "\000"; "\000"; "\000"],
+        Types.MakeRadixNode.Empty, Types.MakeRadixNode.Empty,
+        Types.MakeRadixNode.Empty, Types.MakeRadixNode.Empty))
     |}]
 
 let make_nodes parent child size =

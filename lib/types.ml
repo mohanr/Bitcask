@@ -1,5 +1,12 @@
-open Batteries
+open Segment
 
+
+type data_store ={
+	dirpath : string;
+	last_offset : int Atomic.t;
+	mu        :  Eio.Mutex.t;
+	segments  : int64 SegmentMap.t;
+}
 module type RadixNode = sig
 type 'a t
 end

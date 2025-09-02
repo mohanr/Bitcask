@@ -9,6 +9,15 @@ type key_block_offset = {
 	timestamp   :   int64;
 }
 
+module  Segmentsmap = struct
+  type t = string
+  let compare dirpath dirpath1 =
+    String.compare dirpath dirpath1
+end
+
+module SegmentMap = CCMap.Make(Segmentsmap)
+
+
 
 module  Blockoffset = struct
     type t = int64
