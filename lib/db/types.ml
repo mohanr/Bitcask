@@ -1,11 +1,40 @@
-open Segment
 
 
+
+
+module  Blockoffset = struct
+    type t = int64
+
+    let compare x x1 =          (*  TODO *)
+      0
+end
+
+module BlockOffsetMap =CCMap.Make(Blockoffset)
+
+
+type blockoffset_pair = {startoffset : int64; endoffset :  int64 ; path : string }
+type blocks =  Blockoffset of blockoffset_pair BlockOffsetMap.t
+
+
+type segment = {
+	closed       :      bool;
+	mutable current_block_number :int64;
+	mutable current_block_offset :int64;
+	blocks           :  blocks
+}
+
+module  Segmentsmap = struct
+  type t = string
+  let compare dirpath dirpath1 =
+    String.compare dirpath dirpath1
+end
+
+module SegmentMap = CCMap.Make(Segmentsmap)
 type data_store ={
 	dirpath : string;
 	last_offset : int Atomic.t;
 	mu        :  Eio.Mutex.t;
-	segments  : int64 SegmentMap.t;
+	segments  : segment SegmentMap.t;
 }
 module type RadixNode = sig
 type 'a t

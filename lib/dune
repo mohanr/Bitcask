@@ -8,5 +8,6 @@
  (preprocess (pps ppx_deriving.show))
  (libraries hex fmt timedesc checkseum base containers batteries
             logs logs.fmt  eio_main )
- (modules types utils segment snowflake wal_store datastore adaptive_radix_tree)
+ ; (modules types utils segment snowflake wal_store datastore adaptive_radix_tree)
+
 )

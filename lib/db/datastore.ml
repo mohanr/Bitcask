@@ -2,11 +2,9 @@ open Containers
 open Eio.Std
 open Bitcask__Wal_store.DataEntryOp
 open Bitcask__Adaptive_radix_tree
-open Bitcask__Segment
 open CCMap
-open Segment
+open Segment.Segment
 open Types
-
 
 
 module type WalOperator =
@@ -28,18 +26,17 @@ type data_store = Types.data_store
 
 
 let create_data_store dirpath  =
+  let segment_map =
+    SegmentMap.empty in
   let m =
-    SegmentMap.empty
-    |> SegmentMap.add dirpath (Int64.of_int deleted_flag)
- in
+    SegmentMap.add dirpath (create_new_segment (* key_block_offset *)) in
      {
           dirpath;
           last_offset =  Atomic.make 0;
           mu        =   Eio.Mutex.create();
-          segments  = m;
+          segments  = segment_map;
       }
 end
-
 
 module WalOp =
 struct
@@ -63,6 +60,16 @@ let create_entry_map  (db : data_store ) k v =
 	|> EntryMap.add "key"       (Int64.of_int k)
 	|> EntryMap.add "value"     (Int64.of_int v) in
     m
+
+let  setkey_value_offset_block db key_block_offset path  =
+
+  (*  TODO Exception handler*)
+
+  match (get_segment db path) with
+  | Some s ->
+		update_segment db key_block_offset s
+  | None ->
+		set_segment db key_block_offset.path create_new_segment
 
    let store_entry db k v =
      let m = create_entry_map db k v in
