@@ -3,6 +3,7 @@ open Bigarray
 open Eio.Std
 open Int64
 open Mtime.Span
+open Eio
 
 exception Monotonic_clock of string
 
@@ -101,14 +102,13 @@ let generate n  =
    Eio_main.run @@ fun env ->
    Eio.Switch.run @@ fun sw ->
    let clock = Eio.Stdenv.clock env in
-   Fiber.fork ~sw (fun () ->
+   let id =
+   Fiber.fork_promise ~sw (fun () ->
    Eio.Mutex.use_rw ~protect:true n.mu (fun () ->
 
-
-       let rec loop_while_node idx node =
+       let  gen_id  node =
          let  milli  =  time_since () in
          let curr_time_millis  = ref   milli in
-         if idx < 10 then(
          if  Int64.equal milli node.time then(
              node.step <- Int64.logand (Int64.add node.step  (Int64.of_int 1))  node.stepmask;
 
@@ -125,8 +125,6 @@ let generate n  =
                  in
                  let new_millis = loop_while() in
                  node.time <- new_millis;
-
-
              );
          )else(
              Fmt.pr " node.step is set to %Ld\n"  0L;
@@ -135,16 +133,12 @@ let generate n  =
              node.time <-   milli;
 
          );
-
-
          let id =
          ID  (Int64.( logor (logor (shift_left node.time  (to_int node.time_shift))
              (shift_left node.node  (to_int node.node_shift)))
              node.step)) in
-           Fmt.pr "%Ld\n" (match id with | ID x -> x);
-         loop_while_node (idx + 1) node;
+           (* Fmt.pr "%Ld\n" (match id with | ID x -> x); *)
+         match id with | ID x -> x
+        in gen_id n
         )
-         in
-         loop_while_node 0 n;
-	)
-	)
+	) in Promise.await id
