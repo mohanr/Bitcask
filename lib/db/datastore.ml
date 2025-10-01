@@ -10,8 +10,8 @@ open Types
 module type WalOperator =
 sig
   val create_entry_map : data_store -> int -> int -> int64 EntryMap.t
-val get_last_offset : data_store ->int
-val set_last_offset : data_store -> int -> unit
+  val get_last_offset : data_store ->int
+  val set_last_offset : data_store -> int -> unit
 end
 
 module Database (Wal : WalOperator)  = struct
@@ -44,6 +44,18 @@ struct
 type data_store = Types.data_store
 
 let deleted_flag = 98
+
+let open_wal  =
+	let file_channel =  open_wal "." in
+  (
+	{
+	  writes_in_flight  = Inflight_wal_vector.create();
+	  existing_segments  = Write_Ahead_Map.empty;
+    mu        =   Eio.Mutex.create();
+	}, file_channel
+  )
+
+
 let get_last_offset (db : data_store) =
   Atomic.get db.last_offset
 
@@ -54,12 +66,12 @@ let create_entry_map  (db : data_store ) k v =
     let m =
     EntryMap.empty
     |> EntryMap.add "deleted"   (Int64.of_int deleted_flag)
-	|> EntryMap.add "offset"    Int64.(of_int (get_last_offset db))
-	|> EntryMap.add "key_size"   (Int64.of_int 8)
-	|> EntryMap.add "value_size" (Int64.of_int 8)
-	|> EntryMap.add "key"       (Int64.of_int k)
-	|> EntryMap.add "value"     (Int64.of_int v) in
-    m
+    |> EntryMap.add "offset"    Int64.(of_int (get_last_offset db))
+    |> EntryMap.add "key_size"   (Int64.of_int 8)
+    |> EntryMap.add "value_size" (Int64.of_int 8)
+    |> EntryMap.add "key"       (Int64.of_int k)
+    |> EntryMap.add "value"     (Int64.of_int v) in
+     m
 
 let  setkey_value_offset_block db key_block_offset path  =
 

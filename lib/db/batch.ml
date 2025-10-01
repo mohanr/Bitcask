@@ -1,12 +1,17 @@
 open Bigarray
 open Bitcask__Datastore
+open Bitcask__Wal_store.DataEntryOp
 open Bitcask__Snowflake
 open Containers
 open Bitcask__Murmurhash
 open Eio.Std
+open Eio
+open Utils
 
+exception ErrorBatchCommitted
+exception ErrorBatchRolledback
 
-type wal_record = {
+type batch_record = {
 	key      : Bytes.t;
 	value    : Bytes.t ;
 	batch_id : int64
@@ -24,8 +29,8 @@ module InflightMap = CCMap.Make(Inflightmap)
 
 type batch = {
 	db        :       DatabaseOp.data_store;
-	writes_in_flight  : wal_record Inflight_vector.vector;
-	mutable writes_in_flight_fast_access : wal_record InflightMap.t;
+	writes_in_flight  : batch_record Inflight_vector.vector;
+	mutable writes_in_flight_fast_access : batch_record InflightMap.t;
 	mu        :  Eio.Mutex.t;
 	committed    :    bool;
 	rolledback   :    bool;
@@ -48,10 +53,10 @@ let check_for_inflight_writes b key  =
 
     InflightMap.find_opt key b.writes_in_flight_fast_access
 
-let  store_inflight_writes b key wal_record =
-	let _ = CCVector.push b.writes_in_flight wal_record in
+let  store_inflight_writes b key batch_record =
+	let _ = CCVector.push b.writes_in_flight batch_record in
     let hash_of_key = murmurhash key (Int32.of_int (Bytes.length key)) (Int32.of_int 0) in
-    b.writes_in_flight_fast_access <- b.writes_in_flight_fast_access |> InflightMap.add (Bytes.of_string (Int32.to_string hash_of_key)) wal_record
+    b.writes_in_flight_fast_access <- b.writes_in_flight_fast_access |> InflightMap.add (Bytes.of_string (Int32.to_string hash_of_key)) batch_record
 
 let batch b put key value =
 
@@ -73,3 +78,28 @@ let batch b put key value =
         store_inflight_writes b key wal_record
    )
    )
+
+let  commit b =
+
+   Eio.Switch.run @@ fun sw ->
+   Fiber.fork ~sw (fun () ->
+   Eio.Mutex.use_rw ~protect:true b.mu (fun () ->
+
+	if b.committed then
+		raise ErrorBatchCommitted;
+
+
+  let buffer = Buffer.create 200 in
+  let write_to_stdout stdout bytes =
+    Eio.Buf_write.with_flow stdout @@ fun bw ->
+    Eio.Buf_write.bytes bw bytes
+  in
+   let _ = CCVector.fold ( fun buffer x ->
+       let bytes = (Marshal.to_bytes x []) in
+       write_to_stdout (Eio.Flow.buffer_sink buffer) bytes;
+       buffer
+       ) buffer b.writes_in_flight
+  in
+  ()
+  )
+  )

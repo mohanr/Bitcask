@@ -16,6 +16,7 @@ module type WalWriter =
 sig
   val write : bytes  ->Eio_unix.Stdenv.base ->  unit
   val read :   unit-> Eio_unix.Stdenv.base -> string
+  val open_wal :   string -> Eio_unix.Stdenv.base -> string
 end
 
 module Entry  (Wal : WalWriter) = struct
@@ -50,6 +51,8 @@ module  Entrykeyvalue = struct
 end
 
 let read_entry env = Wal.read() env
+let open_wal env = Wal.open_wal env
+
 module EntryMap = CCMap.Make(Entrykeyvalue)
 
 let current_time_ns () =
@@ -114,6 +117,20 @@ let entry_handler  map =
 end
 
 module WalWriter = struct
+
+let open_wal file_path env =
+  let ( / ) = Eio.Path.( / ) in
+  let path = Eio.Stdenv.fs env  in
+  let p = path / file_path in
+
+  let _ = Eio.Path.with_open_out ~append:true ~create:(`If_missing 0o600) p (fun f ->
+   Eio.Flow.single_write f  [Cstruct.of_bytes
+                               Bytes.empty]
+  ) in
+  Eio.Path.load p
+
+
+
 
 let write (data : bytes) env =
   let ( / ) = Eio.Path.( / ) in

@@ -1,6 +1,4 @@
-
-
-
+open Containers
 
 module  Blockoffset = struct
     type t = int64
@@ -11,11 +9,10 @@ end
 
 module BlockOffsetMap =CCMap.Make(Blockoffset)
 
+module  Inflight_wal_vector = CCVector
 
 type blockoffset_pair = {startoffset : int64; endoffset :  int64 ; path : string }
 type blocks =  Blockoffset of blockoffset_pair BlockOffsetMap.t
-
-
 type segment = {
 	closed       :      bool;
 	mutable current_block_number :int64;
@@ -36,6 +33,21 @@ type data_store ={
 	mu        :  Eio.Mutex.t;
 	segments  : segment SegmentMap.t;
 }
+
+module  Walmap = struct
+  type t = int32
+  let compare segment_id1 segment_id1 =
+    Int32.compare segment_id1 segment_id1
+end
+
+module Write_Ahead_Map = CCMap.Make(Walmap)
+type wal= {
+	mu        :  Eio.Mutex.t;
+	existing_segments  : segment Write_Ahead_Map.t;
+	writes_in_flight  : Bytes.t Inflight_wal_vector.vector;
+}
+
+
 module type RadixNode = sig
 type 'a t
 end
