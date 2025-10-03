@@ -61,7 +61,7 @@ let  store_inflight_writes b key wal_record =
     b.writes_in_flight_fast_access <- b.writes_in_flight_fast_access
                                       |> InflightMap.add (Bytes.of_string (Int32.to_string hash_of_key)) wal_record
 
-let batch b put key value =
+let batch b key value =
 
    Eio.Switch.run @@ fun sw ->
    Fiber.fork ~sw (fun () ->
