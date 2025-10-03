@@ -30,7 +30,7 @@ module  Inflight_vector = CCVector
 module InflightMap = CCMap.Make(Inflightmap)
 
 type batch = {
-	db        :       DatabaseOp.data_store;
+	db        :       (module DATASTOREOperator);
 	writes_in_flight  : wal_record Inflight_vector.vector;
 	mutable writes_in_flight_fast_access : wal_record InflightMap.t;
 	mu        :  Eio.Mutex.t;
@@ -83,7 +83,7 @@ let batch b put key value =
    )
    )
 
-let  commit b =
+let  commit b env =
 
    Eio.Switch.run @@ fun sw ->
    Fiber.fork ~sw (fun () ->
@@ -114,6 +114,7 @@ let  commit b =
 
                                      } []) in
        write_to_stdout (Eio.Flow.buffer_sink buffer) bytes;
-  ()
+       (* Write to WAL *)
+       write (Buffer.to_bytes buffer) env
   )
   )

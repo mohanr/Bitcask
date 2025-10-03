@@ -14,9 +14,8 @@ open Effect.Deep
 
 module type WalWriter =
 sig
-  val write : bytes  ->Eio_unix.Stdenv.base ->  unit
-  val read :   unit-> Eio_unix.Stdenv.base -> string
-  val open_wal :   string -> Eio_unix.Stdenv.base -> string
+  val write : ?file_path:string -> bytes -> Eio_unix.Stdenv.base -> unit
+  val read :   unit-> string -> Eio_unix.Stdenv.base -> string
 end
 
 module Entry  (Wal : WalWriter) = struct
@@ -50,8 +49,8 @@ module  Entrykeyvalue = struct
     0
 end
 
-let read_entry env = Wal.read() env
-let open_wal env = Wal.open_wal env
+let read_entry file_path env = Wal.read() file_path env
+let write  data env = Wal.write  data env
 
 module EntryMap = CCMap.Make(Entrykeyvalue)
 
@@ -118,25 +117,12 @@ end
 
 module WalWriter = struct
 
-let open_wal file_path env =
+
+let write ?(file_path=".") (data : bytes) env =
   let ( / ) = Eio.Path.( / ) in
   let path = Eio.Stdenv.fs env  in
+
   let p = path / file_path in
-
-  let _ = Eio.Path.with_open_out ~append:true ~create:(`If_missing 0o600) p (fun f ->
-   Eio.Flow.single_write f  [Cstruct.of_bytes
-                               Bytes.empty]
-  ) in
-  Eio.Path.load p
-
-
-
-
-let write (data : bytes) env =
-  let ( / ) = Eio.Path.( / ) in
-  let path = Eio.Stdenv.fs env  in
-
-  let p = path / "/Users"/"anu"/"Documents"/"rays"/"Bitcask"/"bitcask"/"bitcask.log" in
 
   Eio.Path.with_open_out ~append:true ~create:(`If_missing 0o600) p (fun f ->
   try
@@ -148,12 +134,12 @@ let write (data : bytes) env =
   |  ex -> traceln "%a" Eio.Exn.pp ex
   )
 
-let read () env =
+let read () file_path env =
 let ( / ) = Eio.Path.( / ) in
   let path = Eio.Stdenv.fs env in
-  let p = path / "/Users"/"anu"/"Documents"/"rays"/"Bitcask"/"bitcask"/"bitcask.log" in
+  let p = path / file_path in
   let lines =
-  if  (Sys.file_exists  "/Users/anu/Documents/rays/Bitcask/bitcask/bitcask.log") then
+  if  (Sys.file_exists file_path) then
    Eio.Path.load p
   else
      raise Not_found

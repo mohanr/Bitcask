@@ -46,14 +46,12 @@ type data_store = Types.data_store
 let deleted_flag = 98
 
 let open_wal  =
-	let file_channel =  open_wal "." in
-  (
 	{
 	  writes_in_flight  = Inflight_wal_vector.create();
 	  existing_segments  = Write_Ahead_Map.empty;
     mu        =   Eio.Mutex.create();
-	}, file_channel
-  )
+	}
+
 
 
 let get_last_offset (db : data_store) =
