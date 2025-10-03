@@ -70,7 +70,7 @@ let%expect_test "Test Set and Get keys"=
       key = "\002\000\000\000\000\000\000\000";
       value = "\002\000\000\000\000\000\000\000";
       deleted = "\002\000\000\000\000\000\000\000"; offset = 2L; size = 36L;
-      tstamp = 5286838621000L; keysize = 2L; valuesize = 2L }
+      tstamp = 4793104302625L; keysize = 2L; valuesize = 2L }
     |}]
 
 let%expect_test "Check sizes to decide offsets"=
@@ -100,12 +100,14 @@ let%expect_test "Check sizes to decide offsets"=
 module DatabaseOp = Bitcask__Datastore.DatabaseOp
 
 let%expect_test "Batch commit and index"=
-Eio_main.run @@ fun _env ->
+Eio_main.run @@ fun env ->
   let new_batch = newbatch (module  DatabaseOp) in
-   batch new_batch (Bytes.make 1 (Char.chr 1))  (Bytes.make 1 (Char.chr 2));
+  let () =  batch new_batch (Bytes.make 1 (Char.chr 1))  (Bytes.make 1 (Char.chr 2)) in
+  commit new_batch env;
   [%expect {|
-    node.step is set to 0
-    node.time is set from 0 to 470657092
-    node.step is set to 0
-    node.time is set from 0 to 470657092
+     node.step is set to 0
+     node.time is set from 0 to 470674519
+     node.step is set to 0
+     node.time is set from 0 to 470674519
+    75 bytes written
     |}]

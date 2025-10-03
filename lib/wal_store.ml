@@ -118,11 +118,13 @@ end
 module WalWriter = struct
 
 
-let write ?(file_path=".") (data : bytes) env =
+let write ?(file_path="/Users/anu/Documents/rays/Bitcask/bitcask"
+
+) (data : bytes) env =
   let ( / ) = Eio.Path.( / ) in
   let path = Eio.Stdenv.fs env  in
 
-  let p = path / file_path in
+  let p = path / file_path / "wal.log" in
 
   Eio.Path.with_open_out ~append:true ~create:(`If_missing 0o600) p (fun f ->
   try
