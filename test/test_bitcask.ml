@@ -159,3 +159,25 @@ let%expect_test "Add 20 children to Node type 16" =
      BYTE representation :[ \x13]
      BYTE representation :[ \x14]
      |}]
+
+let empty_tree =
+    let root = Empty in
+    {root = root; size = 0}
+
+let%expect_test "Test insertion" =
+	let node = empty_tree in
+
+	let n = insert_tree node
+     [Bytes.make 1 'h'; Bytes.make 1 'e'; Bytes.make 1 '1'; Bytes.make 1 '1'; Bytes.make 1 'o'] (Int64.of_int 1) in
+     match (n) with
+        |KeyValue kv ->
+             Printf.printf "%s" (Format.asprintf "%a" pp_keyvaluepair kv)
+     (* match n with *)
+     (*         | Inner_node inn -> *)
+     (*          (match inn with *)
+	 (*          | (  Prefix(_, new_size, _), _, _, _ ) -> *)
+     (*           Printf.printf "%d" new_size;) *)
+     (*         | Empty -> *)
+	 (*           Printf.printf "Wrong node type"; *)
+     (*         | Leaf _-> *)
+	 (*           Printf.printf "Leaf"; *)

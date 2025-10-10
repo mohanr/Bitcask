@@ -2,6 +2,9 @@ open Batteries
 open Bigarray
 open Types
 
+
+exception EmptyKeys
+
 module type Iterator =
 sig
   val has_next: 'n list -> bool
@@ -31,10 +34,8 @@ end
 	let node256min = node48max + 1
 	let node256max = 256
 
-	let maxprefixlen = 10
+	let max_prefix_len = 10
 
-	let nullIdx = -1
-    type keyfield = (int32, int32_elt, c_layout) Array1.t
 
 let char_list_to_byte_list cl =
     let bl  = [] in
@@ -43,7 +44,7 @@ let char_list_to_byte_list cl =
 let make_node_list nodemax node_type =
   let rec loop_while node_list j_dx =
       if j_dx < nodemax then(
-		let b = Bytes.create maxprefixlen |> Bytes.to_seq |> List.of_seq in
+		let b = Bytes.create max_prefix_len |> Bytes.to_seq |> List.of_seq in
 		let b1 = Bytes.create node4max |> Bytes.to_seq |> List.of_seq in
 	    let inn = (
 		 Prefix((List.map List.hd (char_list_to_byte_list b)), 0 , 0), (*  Redundant *)
@@ -58,7 +59,7 @@ let make_node_list nodemax node_type =
 
 let new_node4 =
 
-	let b = Bytes.create maxprefixlen |> Bytes.to_seq |> List.of_seq in
+	let b = Bytes.create max_prefix_len |> Bytes.to_seq |> List.of_seq in
 	let b1 = Bytes.create node4max |> Bytes.to_seq |> List.of_seq in
 	let inn = (
 		 (* Prefix ((List.map List.hd (char_list_to_byte_list b)), 0 , 0), (\*  Redundant *\) *)
@@ -72,7 +73,7 @@ let new_node4 =
 	inn
 
 let new_node16 : inner_node =
-	let b = Bytes.create maxprefixlen |> Bytes.to_seq |> List.of_seq in
+	let b = Bytes.create max_prefix_len |> Bytes.to_seq |> List.of_seq in
 	let b1 = Bytes.create node16max |> Bytes.to_seq |> List.of_seq in
 	let inn = (
 		 Prefix ([], 0 , 0),
@@ -83,7 +84,7 @@ let new_node16 : inner_node =
 	inn
 
 let new_node48 : inner_node =
-	let b = Bytes.create maxprefixlen |> Bytes.to_seq |> List.of_seq in
+	let b = Bytes.create max_prefix_len |> Bytes.to_seq |> List.of_seq in
 	let b1 = Bytes.create node48max |> Bytes.to_seq |> List.of_seq in
 	let inn = (
 		 Prefix((List.map List.hd (char_list_to_byte_list b)), 0 , 0), (*  Redundant *)
@@ -94,7 +95,7 @@ let new_node48 : inner_node =
 	inn
 
 let new_node256 =
-	let b = Bytes.create maxprefixlen |> Bytes.to_seq |> List.of_seq in
+	let b = Bytes.create max_prefix_len |> Bytes.to_seq |> List.of_seq in
 	let inn = (
 		Prefix((List.map List.hd (char_list_to_byte_list b)), 0 , 0), (*  Redundant *)
 		Node256 node256,                                              (* Keys can't be arbitrary *)
@@ -160,7 +161,7 @@ let index n key =
 		   else
 		        Bytes.make 1 (Char.chr 255)  (*TODO  Intended to indicate an exception now*)
        )
-        
+
       |Node48  node48 ->
 		let index = (List.nth keys (Bytes.get_int8  key 0)) in
 		if (Bytes.get_int8 index 0) >  0 then
@@ -295,9 +296,9 @@ let rec add_child key parent child =
             add_child key grow_n child)
     else (
 	   match node_type with
-       | node4 ->
+       | Node4 node4 ->
         let (  n_4meta, node_type,  n_4keys,  n_4children) = parent in
-        match meta with
+        (match meta with
           | Prefix (l, i1, i2) ->
         let idx =
             let rec loop_while id_x= (* TODO Check the spec. of 'compare' *)
@@ -341,9 +342,10 @@ let rec add_child key parent child =
 		         node_type,
                  new1_n4_keys,
                  n_4children)
-       | node16 ->
+        )
+       | Node16 node16 ->
         let (  n_16meta, node_type,  n_16keys,  n_16children) = parent in
-        match meta with
+        (match meta with
           | Prefix (l, i1, i2) ->
 		let idx = i1 in
         let bitfield = Array1.create Int32 c_layout 1 in
@@ -388,8 +390,9 @@ let rec add_child key parent child =
 		         node_type,
                  n_16keys,
                  n_16children)
+        )
 
-      | node48 ->
+      | Node48 node48 ->
         let (  n_48meta, node_type,  n_48keys,  n_48children) = parent in
         match meta with
           | Prefix (l, i1, i2) ->
@@ -416,6 +419,222 @@ let rec add_child key parent child =
                  n_48children)
        )
 
+let rec minimum node =
+
+	match node with
+	  |Inner_node inn ->
+       (match inn with
+        | ( meta, node_type, keys, children )->
+	    (match node_type with
+	     | Node4 v |Node16 v ->
+		     minimum (Array.get  children 0)
+         | Node48 node48 ->
+          let i =
+            let rec loop_while idx =
+            if Bytes.compare (List.nth keys idx)  (Bytes.make 1 (Char.chr 0)) == 0 then
+              loop_while (idx + 1 )
+            else
+              idx
+            in
+            loop_while 0
+            in
+            let child = Array.get children   (Int.of_string (Bytes.to_string (List.nth keys i)) - 1)    in
+            minimum child
+
+        | Node256 node256 ->
+            let i =
+            let rec loop_while idx =
+            if (Bytes.compare (List.nth keys idx) (Bytes.make 1  '\x00')) == 0 then
+              loop_while (idx + 1 )
+            else
+              idx
+            in
+            loop_while 0
+            in
+            let child = Array.get children   (Int.of_string (Bytes.to_string (List.nth keys i)) - 1)    in
+            minimum child
+	    | Leaf l  -> node
+        )
+       )
+
+
+
+let compare_keys key key1 =
+  if List.length key <> List.length key1 then
+    -1
+  else
+   let rec compare comp elem elem1 =
+    match elem, elem1 with
+      | [], [] -> comp
+      | hd :: tl, hd1 :: tl1->
+            let comp =  Bytes.compare hd hd1 in
+            if comp == 0 then
+              compare comp tl tl1
+            else
+              comp
+      | _, _ -> raise EmptyKeys
+    in compare 0 key key1
+
+let  prefix_match_index1 inner_node key level =
+  match inner_node with
+	|Inner_node inn ->
+    let id_x =
+    (match inn with
+	| ( meta, node_type, keys, children )->
+        match meta with
+          | Prefix (prefix, i1, prefix_len) ->
+             let rec loop_while idx pref =
+               if idx < prefix_len && (level + idx) < List.length key &&
+                  (List.nth key (level + idx) == List.nth pref idx) then(
+
+                 if idx == (max_prefix_len-1) then(
+                     match (minimum inner_node) with
+                       |Leaf l ->
+                        match l with
+                        |KeyValue kv ->
+                         loop_while (idx + 1 ) kv.key
+                       |_ -> failwith "prefix_match_index1"
+                 )
+                 else loop_while (idx + 1 ) pref
+                )
+                else idx
+             in
+             loop_while 0 prefix
+    )
+    in id_x
+
+let  prefix_match_index kv level =
+	let limit = Int.min (List.length kv.key)
+                        (List.length kv.key) - level
+    in
+    let result =
+    let rec loop_while i  =
+      if i < limit then(
+		if (List.nth kv.key  (level + i)) !=
+		   (List.nth kv.key  (level + i)) then(
+        i
+        )
+        else
+        loop_while (i + 1)
+      )else i;
+    in
+    loop_while 0;
+    in result
+
+let copy key_list_src key_list_dest level =
+   List.mapi (fun j el -> if j <= level then
+                          el
+                          else (List.nth  key_list_dest j)) key_list_src(* TODO Array is mutable*)
+
+(*  Find the null byte or append it to the key if it is not found*)
+let terminate key =
+   let byte =  (Bytes.make 1 '\x00') in
+	match (List.find (fun elt ->  if (Bytes.compare (Bytes.make 1 '\x00') elt == 0) then true else false) key) with
+   | byte -> key
+   | _ -> List.append key [(Bytes.make 1 '\x00')]
+
+
+let rec insert (tree : tree) node key value level  =
+  match node with
+  | Empty ->
+    let new_key = List.map( fun x -> x ) key in
+    let kv = {key = new_key; value = value }in
+    (true, KeyValue kv)
+  | Leaf l ->
+             match l with
+              | leaf_node  ->
+             match leaf_node with | KeyValue kv ->
+             if compare_keys  kv.key  key == 0 then(
+             kv.value <- value;
+             );
+             let kv = {key = key; value = value }in
+             let new_key = List.map( fun x -> x ) key in
+             let kv = {key = new_key; value = value }in
+             let new_leaf = KeyValue kv in
+             let limit = prefix_match_index kv  level in
+             let new_node = new_node4 in
+             match new_node with
+             | ( meta, node_type, keys, children )->
+                 (match meta with
+                   | Prefix (prefix, i1, prefix_len) ->
+                     let copied_prefix = copy key prefix level in
+                     let level = level + prefix_len in
+                     let parent =
+                       (
+                       Prefix (copied_prefix, i1, limit),
+                       node_type,
+                       keys,
+                       children) in
+                     let _ = add_child (List.nth kv.key level) parent node in
+                     let _ = add_child (List.nth key  level ) parent (Leaf new_leaf) in
+                     (false,new_leaf)
+                )
+    | ( meta_in, node_type_in, keys_in, children_in ) as inn->
+                 match meta_in with
+                   | Prefix (prefix_in, i1_in, prefix_len_in) ->
+                      if prefix_len_in != 0 then(
+                        let prefix_match_result = prefix_match_index1 node key level in
+                        if prefix_match_result != prefix_len_in then
+                          let new_node = new_node4 in
+                          let copied_prefix = copy key prefix_in (Int.min prefix_len_in max_prefix_len) in
+                          match new_node with
+                          | ( meta, node_type, keys, children )->
+                            match meta with
+                              | Prefix (new_prefix, i1, prefix_len) ->
+
+                                let copied_prefix = copy prefix_in new_prefix prefix_match_result in
+
+                                let new_node4=
+                                  (
+                                  Prefix (copied_prefix, i1,  prefix_match_result),
+                                  node_type,
+                                  keys,
+                                  children) in
+                                  let modified_node =
+                                  if prefix_len < max_prefix_len then(
+                                      let _ = add_child (List.nth prefix_in prefix_match_result) new_node4 node in
+                                      let copied_prefix = copy prefix_in (List.filteri (fun i _ -> i >= (prefix_match_result+1) && i < (List.length prefix_in )) prefix_in)  (Int.min prefix_len_in max_prefix_len) in
+                                               (
+                                               Prefix (copied_prefix, i1_in,  prefix_len_in - (prefix_match_result + 1)) ,
+                                               node_type_in,
+                                               keys_in,
+                                               children_in)
+                                  )
+                                  else(
+                                      let prefix_len_in = prefix_len_in - (prefix_match_result + 1) in
+                                      match (minimum node) with
+                                        |Leaf l ->
+                                         match l with
+                                         |KeyValue kv ->
+                                      let _ = add_child (List.nth kv.key (level + prefix_match_result)) new_node4 node in
+                                      let copied_prefix = copy prefix_in (List.filteri (fun i _ -> i >= (prefix_match_result + level + 1) && i < (List.length kv.key )) kv.key)  (Int.min prefix_len_in max_prefix_len) in
+                                               (
+                                               Prefix (copied_prefix, i1_in,  prefix_len_in) ,
+                                               node_type_in,
+                                               keys_in,
+                                               children_in)
+                                  )
+                                  in
+                                  let kv = {key = key; value = value }in
+                                  let new_leaf = KeyValue kv in
+                                  let _ = add_child (List.nth key (level + prefix_match_result)) new_node4 (Leaf new_leaf) in
+                                  ()
+                    );
+                 let level = level + prefix_len_in in
+
+             let next = find_child inn (List.nth  key level ) in
+             match next with
+             | Empty -> insert tree  next key value (level+1)
+             | _ -> let _ = add_child (List.nth  key level ) inn (Leaf new_leaf) in  (false,new_leaf)
+        | _ -> failwith "Unknown pattern"
+
+let insert_tree tree key value =
+	let key = terminate key in
+	let updated_tree = insert tree tree.root key value 0 in
+	match (updated_tree) with
+	|(true,leaf_node)  -> leaf_node
+
+
 end
 
 module type RADIXOperator = sig
@@ -425,6 +644,7 @@ module type RADIXOperator = sig
   val new_node16 : meta * node_type * bytes  list * node array
   val add_child : bytes -> meta * node_type * bytes   list * node array ->
                   node ->  meta * node_type * bytes   list * node array
+  val insert_tree :  tree -> Bytes.t list ->  int64 -> leaf_node
 end
 
 module RADIXOp =

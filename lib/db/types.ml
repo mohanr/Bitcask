@@ -58,7 +58,12 @@ end
     [@@deriving show]
     and
 	leaf_node =
-		Key of Bytes.t list
+	   KeyValue of keyvaluepair
+    and
+    keyvaluepair = {
+	  key : Bytes.t list;
+      mutable value   : int64
+    }
     and
 	inner_node =
 		meta *
@@ -89,7 +94,7 @@ end
 		level list
     and
 	tree =
-		Root of node
+		{root : node; size : int}
     and
     children = node CCArray.t
       (* [@printer *)
