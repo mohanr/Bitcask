@@ -171,7 +171,9 @@ let%expect_test "Test insertion" =
      [Bytes.make 1 'h'; Bytes.make 1 'e'; Bytes.make 1 '1'; Bytes.make 1 '1'; Bytes.make 1 'o'] (Int64.of_int 1) in
      match (n) with
         |KeyValue kv ->
-             Printf.printf "%s" (Format.asprintf "%a" pp_keyvaluepair kv)
+             Printf.printf "%s" (Format.asprintf "%a" pp_keyvaluepair kv);
+   [%expect {|
+     |}]
      (* match n with *)
      (*         | Inner_node inn -> *)
      (*          (match inn with *)

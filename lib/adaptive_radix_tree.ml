@@ -492,7 +492,8 @@ let  prefix_match_index1 inner_node key level =
                        |Leaf l ->
                         match l with
                         |KeyValue kv ->
-                         loop_while (idx + 1 ) kv.key
+                         loop_while (idx + 1 ) (List.filteri (fun i _ -> i >= level &&
+                                                                         i < (List.length kv.key )) kv.key)
                        |_ -> failwith "prefix_match_index1"
                  )
                  else loop_while (idx + 1 ) pref
@@ -503,14 +504,17 @@ let  prefix_match_index1 inner_node key level =
     )
     in id_x
 
-let  prefix_match_index kv level =
-	let limit = Int.min (List.length kv.key)
+let  prefix_match_index l kv level =
+    match l with
+    |KeyValue kv1 ->
+
+	let limit = Int.min (List.length kv1.key)
                         (List.length kv.key) - level
     in
     let result =
     let rec loop_while i  =
       if i < limit then(
-		if (List.nth kv.key  (level + i)) !=
+		if (List.nth kv1.key  (level + i)) !=
 		   (List.nth kv.key  (level + i)) then(
         i
         )
@@ -534,7 +538,7 @@ let terminate key =
    | _ -> List.append key [(Bytes.make 1 '\x00')]
 
 
-let rec insert (tree : tree) node key value level  =
+let rec insert (tr : tree) node key value level  =
   match node with
   | Empty ->
     let new_key = List.map( fun x -> x ) key in
@@ -551,7 +555,7 @@ let rec insert (tree : tree) node key value level  =
              let new_key = List.map( fun x -> x ) key in
              let kv = {key = new_key; value = value }in
              let new_leaf = KeyValue kv in
-             let limit = prefix_match_index kv  level in
+             let limit = prefix_match_index l kv  level in
              let new_node = new_node4 in
              match new_node with
              | ( meta, node_type, keys, children )->
@@ -565,9 +569,9 @@ let rec insert (tree : tree) node key value level  =
                        node_type,
                        keys,
                        children) in
-                     let _ = add_child (List.nth kv.key level) parent node in
-                     let _ = add_child (List.nth key  level ) parent (Leaf new_leaf) in
-                     (false,new_leaf)
+                     let updated_node = add_child (List.nth kv.key level) parent node in
+                     let _ = add_child (List.nth key  level ) updated_node (Leaf new_leaf) in
+                     (false,l)
                 )
     | ( meta_in, node_type_in, keys_in, children_in ) as inn->
                  match meta_in with
@@ -576,10 +580,10 @@ let rec insert (tree : tree) node key value level  =
                         let prefix_match_result = prefix_match_index1 node key level in
                         if prefix_match_result != prefix_len_in then
                           let new_node = new_node4 in
-                          let copied_prefix = copy key prefix_in (Int.min prefix_len_in max_prefix_len) in
-                          match new_node with
+
+                          (match new_node with
                           | ( meta, node_type, keys, children )->
-                            match meta with
+                            (match meta with
                               | Prefix (new_prefix, i1, prefix_len) ->
 
                                 let copied_prefix = copy prefix_in new_prefix prefix_match_result in
@@ -594,11 +598,17 @@ let rec insert (tree : tree) node key value level  =
                                   if prefix_len < max_prefix_len then(
                                       let _ = add_child (List.nth prefix_in prefix_match_result) new_node4 node in
                                       let copied_prefix = copy prefix_in (List.filteri (fun i _ -> i >= (prefix_match_result+1) && i < (List.length prefix_in )) prefix_in)  (Int.min prefix_len_in max_prefix_len) in
+                                      let new_node4=
                                                (
                                                Prefix (copied_prefix, i1_in,  prefix_len_in - (prefix_match_result + 1)) ,
                                                node_type_in,
                                                keys_in,
                                                children_in)
+                                  in
+                                  let kv = {key = key; value = value }in
+                                  let new_leaf = KeyValue kv in
+                                  let _ = add_child (List.nth key (level + prefix_match_result)) new_node4 (Leaf new_leaf) in
+                                  (false, Leaf new_leaf)
                                   )
                                   else(
                                       let prefix_len_in = prefix_len_in - (prefix_match_result + 1) in
@@ -608,24 +618,29 @@ let rec insert (tree : tree) node key value level  =
                                          |KeyValue kv ->
                                       let _ = add_child (List.nth kv.key (level + prefix_match_result)) new_node4 node in
                                       let copied_prefix = copy prefix_in (List.filteri (fun i _ -> i >= (prefix_match_result + level + 1) && i < (List.length kv.key )) kv.key)  (Int.min prefix_len_in max_prefix_len) in
+                                      let new_node4=
                                                (
                                                Prefix (copied_prefix, i1_in,  prefix_len_in) ,
                                                node_type_in,
                                                keys_in,
                                                children_in)
-                                  )
-                                  in
-                                  let kv = {key = key; value = value }in
-                                  let new_leaf = KeyValue kv in
-                                  let _ = add_child (List.nth key (level + prefix_match_result)) new_node4 (Leaf new_leaf) in
-                                  ()
-                    );
-                 let level = level + prefix_len_in in
+                                         in
+                                         let kv = {key = key; value = value }in
+                                         let new_leaf = KeyValue kv in
+                                         let _ = add_child (List.nth key (level + prefix_match_result)) new_node4 (Leaf new_leaf) in
+                                         (false, Leaf new_leaf)
+                                  ) in
+                                         ()
+                               )
+                               )
+             );
+
+             let level = level + prefix_len_in in
 
              let next = find_child inn (List.nth  key level ) in
              match next with
-             | Empty -> insert tree  next key value (level+1)
-             | _ -> let _ = add_child (List.nth  key level ) inn (Leaf new_leaf) in  (false,new_leaf)
+             | Empty  -> let _ = add_child (List.nth  key level ) inn (Leaf new_leaf) in  (false,new_leaf)
+             | _ -> insert tr  next key value (level+1)
         | _ -> failwith "Unknown pattern"
 
 let insert_tree tree key value =
