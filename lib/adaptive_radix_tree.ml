@@ -296,7 +296,7 @@ let rec add_child key parent child =
             add_child key grow_n child)
     else (
 	   match node_type with
-       | Node4 node4 ->
+       |  node4 ->
         let (  n_4meta, node_type,  n_4keys,  n_4children) = parent in
         (match meta with
           | Prefix (l, i1, i2) ->
@@ -343,7 +343,7 @@ let rec add_child key parent child =
                  new1_n4_keys,
                  n_4children)
         )
-       | Node16 node16 ->
+       |  node16 ->
         let (  n_16meta, node_type,  n_16keys,  n_16children) = parent in
         (match meta with
           | Prefix (l, i1, i2) ->
@@ -392,7 +392,7 @@ let rec add_child key parent child =
                  n_16children)
         )
 
-      | Node48 node48 ->
+      |  node48 ->
         let (  n_48meta, node_type,  n_48keys,  n_48children) = parent in
         match meta with
           | Prefix (l, i1, i2) ->
@@ -533,9 +533,9 @@ let copy key_list_src key_list_dest level =
 (*  Find the null byte or append it to the key if it is not found*)
 let terminate key =
    let byte =  (Bytes.make 1 '\x00') in
-	match (List.find (fun elt ->  if (Bytes.compare (Bytes.make 1 '\x00') elt == 0) then true else false) key) with
-   | byte -> key
-   | _ -> List.append key [(Bytes.make 1 '\x00')]
+	match (List.find_index (fun elt ->  if (Bytes.compare (Bytes.make 1 '\x00') elt == 0) then true else false) key) with
+   | Some i -> key
+   | None -> List.append key [(Bytes.make 1 '\x00')]
 
 
 let rec insert (tr : tree) node key value level  =
@@ -543,7 +543,7 @@ let rec insert (tr : tree) node key value level  =
   | Empty ->
     let new_key = List.map( fun x -> x ) key in
     let kv = {key = new_key; value = value }in
-    (true, KeyValue kv)
+    (true, Empty)
   | Leaf l ->
              match l with
               | leaf_node  ->
@@ -570,20 +570,20 @@ let rec insert (tr : tree) node key value level  =
                        keys,
                        children) in
                      let updated_node = add_child (List.nth kv.key level) parent node in
-                     let _ = add_child (List.nth key  level ) updated_node (Leaf new_leaf) in
-                     (false,l)
+                     let changed_node = add_child (List.nth key  level ) updated_node (Leaf new_leaf) in
+                     (false,Inner_node changed_node )
                 )
     | ( meta_in, node_type_in, keys_in, children_in ) as inn->
                  match meta_in with
                    | Prefix (prefix_in, i1_in, prefix_len_in) ->
                       if prefix_len_in != 0 then(
                         let prefix_match_result = prefix_match_index1 node key level in
-                        if prefix_match_result != prefix_len_in then
+                        if prefix_match_result != prefix_len_in then(
                           let new_node = new_node4 in
 
-                          (match new_node with
+                         (match new_node with
                           | ( meta, node_type, keys, children )->
-                            (match meta with
+                            match meta with
                               | Prefix (new_prefix, i1, prefix_len) ->
 
                                 let copied_prefix = copy prefix_in new_prefix prefix_match_result in
@@ -594,7 +594,6 @@ let rec insert (tr : tree) node key value level  =
                                   node_type,
                                   keys,
                                   children) in
-                                  let modified_node =
                                   if prefix_len < max_prefix_len then(
                                       let _ = add_child (List.nth prefix_in prefix_match_result) new_node4 node in
                                       let copied_prefix = copy prefix_in (List.filteri (fun i _ -> i >= (prefix_match_result+1) && i < (List.length prefix_in )) prefix_in)  (Int.min prefix_len_in max_prefix_len) in
@@ -607,8 +606,8 @@ let rec insert (tr : tree) node key value level  =
                                   in
                                   let kv = {key = key; value = value }in
                                   let new_leaf = KeyValue kv in
-                                  let _ = add_child (List.nth key (level + prefix_match_result)) new_node4 (Leaf new_leaf) in
-                                  (false, Leaf new_leaf)
+                                  let changed_node = add_child (List.nth key (level + prefix_match_result)) new_node4 (Leaf new_leaf) in
+                                  (false, Inner_node changed_node)
                                   )
                                   else(
                                       let prefix_len_in = prefix_len_in - (prefix_match_result + 1) in
@@ -627,27 +626,29 @@ let rec insert (tr : tree) node key value level  =
                                          in
                                          let kv = {key = key; value = value }in
                                          let new_leaf = KeyValue kv in
-                                         let _ = add_child (List.nth key (level + prefix_match_result)) new_node4 (Leaf new_leaf) in
-                                         (false, Leaf new_leaf)
-                                  ) in
-                                         ()
-                               )
-                               )
-             );
+                                         let changed_node = add_child (List.nth key (level + prefix_match_result)) new_node4 (Leaf new_leaf) in
+                                         (false, Inner_node changed_node)
+                                  )
+                         )
+                        )
+                        else (false, Inner_node inn)
+
+             ) else
 
              let level = level + prefix_len_in in
 
              let next = find_child inn (List.nth  key level ) in
              match next with
-             | Empty  -> let _ = add_child (List.nth  key level ) inn (Leaf new_leaf) in  (false,new_leaf)
-             | _ -> insert tr  next key value (level+1)
+             | Empty  ->  let modified_node = add_child (List.nth  key level ) inn (Leaf new_leaf) in (false,Inner_node modified_node)
+             | _ ->  insert tr  next key value (level+1)
         | _ -> failwith "Unknown pattern"
 
 let insert_tree tree key value =
 	let key = terminate key in
 	let updated_tree = insert tree tree.root key value 0 in
 	match (updated_tree) with
-	|(true,leaf_node)  -> leaf_node
+	|true, node->
+    node
 
 
 end
@@ -659,7 +660,7 @@ module type RADIXOperator = sig
   val new_node16 : meta * node_type * bytes  list * node array
   val add_child : bytes -> meta * node_type * bytes   list * node array ->
                   node ->  meta * node_type * bytes   list * node array
-  val insert_tree :  tree -> Bytes.t list ->  int64 -> leaf_node
+  val insert_tree :  tree -> Bytes.t list ->  int64 ->  node
 end
 
 module RADIXOp =

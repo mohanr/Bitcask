@@ -7,7 +7,7 @@ module type RADIXOperator = sig
   val new_node16 : meta * node_type * bytes  list * node array
   val add_child : bytes -> meta * node_type * bytes   list * node array ->
                   node ->  meta * node_type * bytes   list * node array
-  val insert_tree :  tree -> Bytes.t list ->  int64 -> leaf_node
+  val insert_tree :  tree -> Bytes.t list ->  int64 -> node
 end
 
 module RADIXOp : RADIXOperator
