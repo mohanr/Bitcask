@@ -181,4 +181,4 @@ let%expect_test "Test insertion" =
           )
 	     | Leaf _  -> Printf.printf "Leaf"
 	     | Empty   -> Printf.printf "Empty");
-   [%expect {| Empty |}]
+   [%expect {| Leaf |}]

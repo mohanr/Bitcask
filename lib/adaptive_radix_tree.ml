@@ -529,7 +529,6 @@ let copy key_list_src key_list_dest level =
    List.mapi (fun j el -> if j <= level then
                           el
                           else (List.nth  key_list_dest j)) key_list_src(* TODO Array is mutable*)
-
 (*  Find the null byte or append it to the key if it is not found*)
 let terminate key =
    let byte =  (Bytes.make 1 '\x00') in
@@ -543,7 +542,7 @@ let rec insert (tr : tree) node key value level  =
   | Empty ->
     let new_key = List.map( fun x -> x ) key in
     let kv = {key = new_key; value = value }in
-    (true, Empty)
+    (true,  Leaf (KeyValue  kv))
   | Leaf l ->
              match l with
               | leaf_node  ->
