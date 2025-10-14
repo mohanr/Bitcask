@@ -460,7 +460,13 @@ let rec minimum node =
 
 
 let compare_keys key key1 =
-  if List.length key <> List.length key1 then
+ List.iter ( fun k ->
+    Fmt.pr "Searching BYTE representation :[ \\x%02X]\n" (Char.code (Bytes.get  k 0))
+  ) key;
+ List.iter ( fun k ->
+    Fmt.pr "Searching BYTE representation :[ \\x%02X]\n" (Char.code (Bytes.get  k 0))
+  ) key1;
+ if List.length key <> List.length key1 then
     -1
   else
    let rec compare comp elem elem1 =
@@ -679,6 +685,8 @@ let rec search node key level =
         )
      | Empty -> None
 
+let search_after_terminating node key level =
+  search node (terminate key) level
 
 end
 
@@ -690,7 +698,7 @@ module type RADIXOperator = sig
   val add_child : bytes -> meta * node_type * bytes   list * node array ->
                   node ->  meta * node_type * bytes   list * node array
   val insert_tree :  tree -> Bytes.t list ->  int64 ->  node
-  val search : node -> Bytes.t list  -> int -> int64 option
+  val search_after_terminating : node -> Bytes.t list  -> int -> int64 option
 end
 
 module RADIXOp =

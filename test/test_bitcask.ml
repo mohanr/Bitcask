@@ -188,6 +188,20 @@ let%expect_test "Test insertion and search" =
 	let n = insert_tree node
      [Bytes.make 1 'h'; Bytes.make 1 'e'; Bytes.make 1 '1'; Bytes.make 1 '1'; Bytes.make 1 'o']  (Int64.of_int 1) in
 
-	let result = search n [Bytes.make 1 'h'; Bytes.make 1 'e'; Bytes.make 1 '1'; Bytes.make 1 '1'; Bytes.make 1 'o']  1 in
+	let result = search_after_terminating n [Bytes.make 1 'h'; Bytes.make 1 'e'; Bytes.make 1 '1'; Bytes.make 1 '1'; Bytes.make 1 'o']  1 in
 	Printf.printf "%Ld" (match result with | Some i -> i | None -> failwith "Faulty seasrch result");
-    [%expect {| Leaf |}]
+    [%expect {|
+      Searching BYTE representation :[ \x68]
+      Searching BYTE representation :[ \x65]
+      Searching BYTE representation :[ \x31]
+      Searching BYTE representation :[ \x31]
+      Searching BYTE representation :[ \x6F]
+      Searching BYTE representation :[ \x00]
+      Searching BYTE representation :[ \x68]
+      Searching BYTE representation :[ \x65]
+      Searching BYTE representation :[ \x31]
+      Searching BYTE representation :[ \x31]
+      Searching BYTE representation :[ \x6F]
+      Searching BYTE representation :[ \x00]
+      1
+      |}]
