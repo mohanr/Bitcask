@@ -182,3 +182,12 @@ let%expect_test "Test insertion" =
 	     | Leaf _  -> Printf.printf "Leaf"
 	     | Empty   -> Printf.printf "Empty");
    [%expect {| Leaf |}]
+
+let%expect_test "Test insertion and search" =
+	let node = empty_tree in
+	let n = insert_tree node
+     [Bytes.make 1 'h'; Bytes.make 1 'e'; Bytes.make 1 '1'; Bytes.make 1 '1'; Bytes.make 1 'o']  (Int64.of_int 1) in
+
+	let result = search n [Bytes.make 1 'h'; Bytes.make 1 'e'; Bytes.make 1 '1'; Bytes.make 1 '1'; Bytes.make 1 'o']  1 in
+	Printf.printf "%Ld" (match result with | Some i -> i | None -> failwith "Faulty seasrch result");
+    [%expect {| Leaf |}]

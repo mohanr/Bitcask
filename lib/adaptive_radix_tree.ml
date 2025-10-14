@@ -642,12 +642,42 @@ let rec insert (tr : tree) node key value level  =
              | _ ->  insert tr  next key value (level+1)
         | _ -> failwith "Unknown pattern"
 
+(* Size is not updated now TODO  *)
 let insert_tree tree key value =
 	let key = terminate key in
 	let updated_tree = insert tree tree.root key value 0 in
 	match (updated_tree) with
 	|true, node->
     node
+
+let rec search node key level =
+	match ( node ) with
+    | Leaf l ->
+             (match l with
+              | leaf_node  ->
+              match leaf_node with | KeyValue kv ->
+			  let result = compare_keys key kv.key in
+			  if result == 0 then
+				Some kv.value
+              else None
+             )
+    | Inner_node n ->
+         (match n with
+          |( meta, node_type, keys, children ) ->
+                 (match meta with
+                 | Prefix (prefix, i1, prefix_len) ->
+                 if prefix_match_index1 node key level != prefix_len then
+                     None
+                 else
+                     let level = level + prefix_len
+                     in
+                     let child = find_child n (List.nth  key level ) in
+                     match ( node ) with
+                     | Empty -> None
+                     | _ -> search node key (level + 1)
+                     )
+        )
+     | Empty -> None
 
 
 end
@@ -660,6 +690,7 @@ module type RADIXOperator = sig
   val add_child : bytes -> meta * node_type * bytes   list * node array ->
                   node ->  meta * node_type * bytes   list * node array
   val insert_tree :  tree -> Bytes.t list ->  int64 ->  node
+  val search : node -> Bytes.t list  -> int -> int64 option
 end
 
 module RADIXOp =
