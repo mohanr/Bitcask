@@ -188,7 +188,7 @@ let%expect_test "Test insertion and search" =
 	let n = insert_tree node
      [Bytes.make 1 'h'; Bytes.make 1 'e'; Bytes.make 1 '1'; Bytes.make 1 '1'; Bytes.make 1 'o']  (Int64.of_int 1) in
 
-	let result = search_after_terminating n [Bytes.make 1 'h'; Bytes.make 1 'e'; Bytes.make 1 '1'; Bytes.make 1 '1'; Bytes.make 1 'o']  1 in
+	let result = search_after_terminating n [Bytes.make 1 'h'; Bytes.make 1 'e'; Bytes.make 1 '1'; Bytes.make 1 '1'; Bytes.make 1 'o']  0 in
 	Printf.printf "%Ld" (match result with | Some i -> i | None -> failwith "Faulty seasrch result");
     [%expect {|
       Searching BYTE representation :[ \x68]
@@ -205,3 +205,59 @@ let%expect_test "Test insertion and search" =
       Searching BYTE representation :[ \x00]
       1
       |}]
+
+let%expect_test "Test multiple insertion and search" =
+	let node = empty_tree in
+	let n = insert_tree node
+     [Bytes.make 1 'h'; Bytes.make 1 'e'; Bytes.make 1 '1'; Bytes.make 1 '1'; Bytes.make 1 'o']  (Int64.of_int 1) in
+    let updated_root = {root = n ; size = node.size} in
+	let n1 = insert_tree updated_root
+     [Bytes.make 1 'r'; Bytes.make 1 'o']  (Int64.of_int 2) in
+    let updated_root = {root = n1 ; size = node.size} in
+	let n2 = insert_tree updated_root
+     [Bytes.make 1 'r'; Bytes.make 1 'o'; Bytes.make 1 'u'; Bytes.make 1 'n']  (Int64.of_int 3) in
+
+	let result = search_after_terminating n2 [Bytes.make 1 'r'; Bytes.make 1 'o'] 0 in
+	Printf.printf "%Ld" (match result with | Some i -> i | None -> failwith "Faulty seasrch result");
+[@@expect.uncaught_exn {|
+  (* CR expect_test_collector: This test expectation appears to contain a backtrace.
+     This is strongly discouraged as backtraces are fragile.
+     Please change this test to not include a backtrace. *)
+  (Failure "Faulty seasrch result")
+  Raised at Stdlib.failwith in file "stdlib.ml", line 29, characters 17-33
+  Called from Test_bitcask.(fun) in file "Bitcask/bitcask/test/test_bitcask.ml", line 221, characters 64-96
+  Called from Ppx_expect_runtime__Test_block.Configured.dump_backtrace in file "runtime/test_block.ml", line 142, characters 10-28
+
+  Trailing output
+  ---------------
+  Searching BYTE representation :[ \x68]
+  Searching BYTE representation :[ \x65]
+  Searching BYTE representation :[ \x31]
+  Searching BYTE representation :[ \x31]
+  Searching BYTE representation :[ \x6F]
+  Searching BYTE representation :[ \x00]
+  Searching BYTE representation :[ \x72]
+  Searching BYTE representation :[ \x6F]
+  Searching BYTE representation :[ \x00]
+  Dest. BYTE representation :[ \x72]
+  Dest. BYTE representation :[ \x6F]
+  Dest. BYTE representation :[ \x00]
+  level 0 copy_bytes Grow node16
+  Grow node48
+  Searching BYTE representation :[ \x72]
+  Searching BYTE representation :[ \x6F]
+  Searching BYTE representation :[ \x00]
+  Searching BYTE representation :[ \x72]
+  Searching BYTE representation :[ \x6F]
+  Searching BYTE representation :[ \x75]
+  Searching BYTE representation :[ \x6E]
+  Searching BYTE representation :[ \x00]
+  Dest. BYTE representation :[ \x72]
+  Dest. BYTE representation :[ \x6F]
+  Dest. BYTE representation :[ \x75]
+  Dest. BYTE representation :[ \x6E]
+  Dest. BYTE representation :[ \x00]
+  level 1 copy_bytes Grow node16
+  Grow node48
+  Level 0 Key size 3
+  |}]

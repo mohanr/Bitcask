@@ -163,11 +163,13 @@ let index n key =
        )
 
       |Node48  node48 ->
-		let index = (List.nth keys (Bytes.get_int8  key 0)) in
-		if (Bytes.get_int8 index 0) >  0 then
-			Bytes.make 1 (Char.chr ((Bytes.get_int8 index 0) - 1))
-		else
-			Bytes.make 1 (Char.chr 255)
+		let index = (List.find_index (fun key -> true) keys) in
+        (match index with
+        | Some i ->
+			let n = (if i <= 0 then (Char.chr 0) else (Char.chr (i - 1))) in
+			Bytes.make 1   n
+        | None ->
+			Bytes.make 1 (Char.chr 255))
 
       |Node256  node256 ->
 		key
@@ -542,35 +544,47 @@ let terminate key =
    | Some i -> key
    | None -> List.append key [(Bytes.make 1 '\x00')]
 
+let copy_bytes src dest level =
+ List.iter ( fun k ->
+    Fmt.pr "Source BYTE representation :[ \\x%02X]\n" (Char.code (Bytes.get  k 0))
+  ) src;
+ List.iter ( fun k ->
+    Fmt.pr "Dest. BYTE representation :[ \\x%02X]\n" (Char.code (Bytes.get  k 0))
+  ) dest;
+  Printf.printf "level %d copy_bytes %s" level (String.concat " " (List.map (fun x -> Bytes.to_string x)
+                                                    (List.filteri (fun i _ -> i >= level && i < (List.length dest )) src)))
+
 
 let rec insert (tr : tree) node key value level  =
-  match node with
+  (match node with
   | Empty ->
     let new_key = List.map( fun x -> x ) key in
     let kv = {key = new_key; value = value }in
     (true,  Leaf (KeyValue  kv))
   | Leaf l ->
-             match l with
+             (match l with
               | leaf_node  ->
-             match leaf_node with | KeyValue kv ->
+             (match leaf_node with | KeyValue kv ->
              if compare_keys  kv.key  key == 0 then(
              kv.value <- value;
-             );
+             (true,  Leaf (KeyValue  kv))
+             ) else
              let kv = {key = key; value = value }in
-             let new_key = List.map( fun x -> x ) key in
+             let new_key = List.map( fun x -> x ) key in (*  Create a new leaf*)
              let kv = {key = new_key; value = value }in
              let new_leaf = KeyValue kv in
              let limit = prefix_match_index l kv  level in
              let new_node = new_node4 in
-             match new_node with
+             (match new_node with
              | ( meta, node_type, keys, children )->
                  (match meta with
                    | Prefix (prefix, i1, prefix_len) ->
-                     let copied_prefix = copy key prefix level in
-                     let level = level + prefix_len in
+                     copy_bytes prefix key level;
+                     let copied_prefix = copy prefix (List.filteri (fun i _ -> i >= level && i < (List.length key )) key)  level in
+                     let level = level + limit in
                      let parent =
                        (
-                       Prefix (copied_prefix, i1, limit),
+                       Prefix (copied_prefix, i1, limit), (*  Limit it set here*)
                        node_type,
                        keys,
                        children) in
@@ -578,7 +592,10 @@ let rec insert (tr : tree) node key value level  =
                      let changed_node = add_child (List.nth key  level ) updated_node (Leaf new_leaf) in
                      (false,Inner_node changed_node )
                 )
-    | ( meta_in, node_type_in, keys_in, children_in ) as inn->
+             )))
+    | Inner_node inn ->
+      match inn with
+        ( meta_in, node_type_in, keys_in, children_in ) as inn->
                  match meta_in with
                    | Prefix (prefix_in, i1_in, prefix_len_in) ->
                       if prefix_len_in != 0 then(
@@ -621,6 +638,7 @@ let rec insert (tr : tree) node key value level  =
                                          match l with
                                          |KeyValue kv ->
                                       let _ = add_child (List.nth kv.key (level + prefix_match_result)) new_node4 node in
+
                                       let copied_prefix = copy prefix_in (List.filteri (fun i _ -> i >= (prefix_match_result + level + 1) && i < (List.length kv.key )) kv.key)  (Int.min prefix_len_in max_prefix_len) in
                                       let new_node4=
                                                (
@@ -642,18 +660,22 @@ let rec insert (tr : tree) node key value level  =
 
              let level = level + prefix_len_in in
 
-             let next = find_child inn (List.nth  key level ) in
-             match next with
+             let kv = {key = key; value = value }in
+             let new_leaf = KeyValue kv in (*TODO Remove duplicate Construction of new_leaf*)
+          let next = find_child inn (List.nth  key level ) in
+             (match next with
              | Empty  ->  let modified_node = add_child (List.nth  key level ) inn (Leaf new_leaf) in (false,Inner_node modified_node)
              | _ ->  insert tr  next key value (level+1)
-        | _ -> failwith "Unknown pattern"
+             )
+    |  _ -> failwith "Unknown pattern"
+    )
 
 (* Size is not updated now TODO  *)
 let insert_tree tree key value =
 	let key = terminate key in
 	let updated_tree = insert tree tree.root key value 0 in
 	match (updated_tree) with
-	|true, node->
+	|_, node->
     node
 
 let rec search node key level =
@@ -677,7 +699,15 @@ let rec search node key level =
                  else
                      let level = level + prefix_len
                      in
+                     Printf.printf "Level %d Key size %d" (level + prefix_len) (List.length key);
+                     if (List.length key >= (level -1)) then
+                                     None
+                     else
                      let child = find_child n (List.nth  key level ) in
+                     List.iter ( fun k ->
+                        Fmt.pr " Search BYTE representation :[ \\x%02X]\n" (Char.code (Bytes.get  k 0))
+                      ) key ;
+                     Printf.printf "Level %d" level;
                      match ( node ) with
                      | Empty -> None
                      | _ -> search node key (level + 1)
