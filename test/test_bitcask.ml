@@ -41,6 +41,7 @@ let%expect_test _=
 
 let make_nodes parent child size =
 
+      Printf.eprintf "add_child ENTER \n%!";
      let rec loop_while parent idx key =
 
             if idx < size then(
@@ -73,16 +74,56 @@ let%expect_test _=  (* Add 4 children to Node type 4*)
     List.iter ( fun k ->
     Fmt.pr "add_child BYTE representation :[ \\x%02X]\n" (Char.code (Bytes.get  k 0))
     ) keys;
-[%expect {|
-  Grow node16
-  Grow node48
-  Size is 52
-  Size of children 256
-  add_child BYTE representation :[ \x01]
-  add_child BYTE representation :[ \x02]
-  add_child BYTE representation :[ \x03]
-  add_child BYTE representation :[ \x04]
-  |}]
+  [%expect {|
+    add_child ENTER
+    add_child ENTER
+      parent size=0 nonempty=4
+    add_child ENTER
+      parent size=16 nonempty=16
+    add_child ENTER
+      parent size=256 nonempty=256
+    add_child ENTER
+      parent size=257 nonempty=256
+    add_child ENTER
+      parent size=258 nonempty=256
+    add_child ENTER
+      parent size=259 nonempty=256
+    Grow node16
+    old_idx 0 length of keys 0
+    old_idx 1 length of keys 0
+    old_idx 2 length of keys 0
+    old_idx 3 length of keys 0
+    old_idx 4 length of keys 0
+    old_idx 5 length of keys 0
+    old_idx 6 length of keys 0
+    old_idx 7 length of keys 0
+    old_idx 8 length of keys 0
+    old_idx 9 length of keys 0
+    old_idx 10 length of keys 0
+    old_idx 11 length of keys 0
+    old_idx 12 length of keys 0
+    old_idx 13 length of keys 0
+    old_idx 14 length of keys 0
+    old_idx 15 length of keys 0
+    Size is 260
+    Size of children 256
+    add_child BYTE representation :[ \x01]
+    add_child BYTE representation :[ \x02]
+    add_child BYTE representation :[ \x03]
+    add_child BYTE representation :[ \x04]
+    add_child BYTE representation :[ \x05]
+    add_child BYTE representation :[ \x06]
+    add_child BYTE representation :[ \x07]
+    add_child BYTE representation :[ \x08]
+    add_child BYTE representation :[ \x09]
+    add_child BYTE representation :[ \x0A]
+    add_child BYTE representation :[ \x0B]
+    add_child BYTE representation :[ \x0C]
+    add_child BYTE representation :[ \x0D]
+    add_child BYTE representation :[ \x0E]
+    add_child BYTE representation :[ \x0F]
+    add_child BYTE representation :[ \x10]
+    |}]
 
 
 let%expect_test "Add 16 children to Node type 16" =
@@ -98,26 +139,44 @@ let%expect_test "Add 16 children to Node type 16" =
                Fmt.pr "BYTE representation :[ \\x%02X]\n" (Char.code (Bytes.get  k 0))
              ) keys;
    [%expect {|
+     add_child ENTER
+     add_child ENTER
+       parent size=0 nonempty=16
+     add_child ENTER
+       parent size=256 nonempty=256
+     add_child ENTER
+       parent size=257 nonempty=256
+     add_child ENTER
+       parent size=258 nonempty=256
+     add_child ENTER
+       parent size=259 nonempty=256
+     add_child ENTER
+       parent size=260 nonempty=256
+     add_child ENTER
+       parent size=261 nonempty=256
+     add_child ENTER
+       parent size=262 nonempty=256
+     add_child ENTER
+       parent size=263 nonempty=256
+     add_child ENTER
+       parent size=264 nonempty=256
+     add_child ENTER
+       parent size=265 nonempty=256
+     add_child ENTER
+       parent size=266 nonempty=256
+     add_child ENTER
+       parent size=267 nonempty=256
+     add_child ENTER
+       parent size=268 nonempty=256
+     add_child ENTER
+       parent size=269 nonempty=256
+     add_child ENTER
+       parent size=270 nonempty=256
+     add_child ENTER
+       parent size=271 nonempty=256
      Grow node16
-     Grow node48
-     Size is 64
+     Size is 272
      Size of children 256
-     BYTE representation :[ \x01]
-     BYTE representation :[ \x02]
-     BYTE representation :[ \x03]
-     BYTE representation :[ \x04]
-     BYTE representation :[ \x05]
-     BYTE representation :[ \x06]
-     BYTE representation :[ \x07]
-     BYTE representation :[ \x08]
-     BYTE representation :[ \x09]
-     BYTE representation :[ \x0A]
-     BYTE representation :[ \x0B]
-     BYTE representation :[ \x0C]
-     BYTE representation :[ \x0D]
-     BYTE representation :[ \x0E]
-     BYTE representation :[ \x0F]
-     BYTE representation :[ \x10]
      |}]
 
 let%expect_test "Add 20 children to Node type 16" =
@@ -134,30 +193,52 @@ let%expect_test "Add 20 children to Node type 16" =
                Fmt.pr "BYTE representation :[ \\x%02X]\n" (Char.code (Bytes.get  k 0))
              ) keys;
    [%expect {|
+     add_child ENTER
+     add_child ENTER
+       parent size=0 nonempty=16
+     add_child ENTER
+       parent size=256 nonempty=256
+     add_child ENTER
+       parent size=257 nonempty=256
+     add_child ENTER
+       parent size=258 nonempty=256
+     add_child ENTER
+       parent size=259 nonempty=256
+     add_child ENTER
+       parent size=260 nonempty=256
+     add_child ENTER
+       parent size=261 nonempty=256
+     add_child ENTER
+       parent size=262 nonempty=256
+     add_child ENTER
+       parent size=263 nonempty=256
+     add_child ENTER
+       parent size=264 nonempty=256
+     add_child ENTER
+       parent size=265 nonempty=256
+     add_child ENTER
+       parent size=266 nonempty=256
+     add_child ENTER
+       parent size=267 nonempty=256
+     add_child ENTER
+       parent size=268 nonempty=256
+     add_child ENTER
+       parent size=269 nonempty=256
+     add_child ENTER
+       parent size=270 nonempty=256
+     add_child ENTER
+       parent size=271 nonempty=256
+     add_child ENTER
+       parent size=272 nonempty=256
+     add_child ENTER
+       parent size=273 nonempty=256
+     add_child ENTER
+       parent size=274 nonempty=256
+     add_child ENTER
+       parent size=275 nonempty=256
      Grow node16
-     Grow node48
-     Size is 68
+     Size is 276
      Size of children 256
-     BYTE representation :[ \x01]
-     BYTE representation :[ \x02]
-     BYTE representation :[ \x03]
-     BYTE representation :[ \x04]
-     BYTE representation :[ \x05]
-     BYTE representation :[ \x06]
-     BYTE representation :[ \x07]
-     BYTE representation :[ \x08]
-     BYTE representation :[ \x09]
-     BYTE representation :[ \x0A]
-     BYTE representation :[ \x0B]
-     BYTE representation :[ \x0C]
-     BYTE representation :[ \x0D]
-     BYTE representation :[ \x0E]
-     BYTE representation :[ \x0F]
-     BYTE representation :[ \x10]
-     BYTE representation :[ \x11]
-     BYTE representation :[ \x12]
-     BYTE representation :[ \x13]
-     BYTE representation :[ \x14]
      |}]
 
 let empty_tree =
@@ -190,21 +271,7 @@ let%expect_test "Test insertion and search" =
 
 	let result = search_after_terminating n [Bytes.make 1 'h'; Bytes.make 1 'e'; Bytes.make 1 '1'; Bytes.make 1 '1'; Bytes.make 1 'o']  0 in
 	Printf.printf "%Ld" (match result with | Some i -> i | None -> failwith "Faulty seasrch result");
-    [%expect {|
-      Searching BYTE representation :[ \x68]
-      Searching BYTE representation :[ \x65]
-      Searching BYTE representation :[ \x31]
-      Searching BYTE representation :[ \x31]
-      Searching BYTE representation :[ \x6F]
-      Searching BYTE representation :[ \x00]
-      Searching BYTE representation :[ \x68]
-      Searching BYTE representation :[ \x65]
-      Searching BYTE representation :[ \x31]
-      Searching BYTE representation :[ \x31]
-      Searching BYTE representation :[ \x6F]
-      Searching BYTE representation :[ \x00]
-      1
-      |}]
+    [%expect {| 1 |}]
 
 let%expect_test "Test multiple insertion and search" =
 	let node = empty_tree in
@@ -216,7 +283,19 @@ let%expect_test "Test multiple insertion and search" =
     let updated_root = {root = n1 ; size = node.size} in
 	let n2 = insert_tree updated_root
      [Bytes.make 1 'r'; Bytes.make 1 'o'; Bytes.make 1 'u'; Bytes.make 1 'n']  (Int64.of_int 3) in
-
+     (match n2 with
+	     | Inner_node inn ->
+	      Printf.printf "Inner_node";
+          (match inn with
+           |(  Prefix(_, new_size, _), _, keys, children ) ->
+           Printf.printf "Size is %d\n" new_size;
+           Printf.printf "Size of children %d\n" (Array.length children);
+           List.iter ( fun k ->
+               Fmt.pr "BYTE representation :[ \\x%02X]\n" (Char.code (Bytes.get  k 0))
+             ) keys;
+          )
+	     | Leaf _  -> Printf.printf "Leaf"
+	     | Empty   -> Printf.printf "Empty");
 	let result = search_after_terminating n2 [Bytes.make 1 'r'; Bytes.make 1 'o'] 0 in
 	Printf.printf "%Ld" (match result with | Some i -> i | None -> failwith "Faulty seasrch result");
 [@@expect.uncaught_exn {|
@@ -225,39 +304,62 @@ let%expect_test "Test multiple insertion and search" =
      Please change this test to not include a backtrace. *)
   (Failure "Faulty seasrch result")
   Raised at Stdlib.failwith in file "stdlib.ml", line 29, characters 17-33
-  Called from Test_bitcask.(fun) in file "Bitcask/bitcask/test/test_bitcask.ml", line 221, characters 64-96
+  Called from Test_bitcask.(fun) in file "Bitcask/bitcask/test/test_bitcask.ml", line 300, characters 64-96
   Called from Ppx_expect_runtime__Test_block.Configured.dump_backtrace in file "runtime/test_block.ml", line 142, characters 10-28
 
   Trailing output
   ---------------
-  Searching BYTE representation :[ \x68]
-  Searching BYTE representation :[ \x65]
-  Searching BYTE representation :[ \x31]
-  Searching BYTE representation :[ \x31]
-  Searching BYTE representation :[ \x6F]
-  Searching BYTE representation :[ \x00]
-  Searching BYTE representation :[ \x72]
-  Searching BYTE representation :[ \x6F]
-  Searching BYTE representation :[ \x00]
-  Dest. BYTE representation :[ \x72]
-  Dest. BYTE representation :[ \x6F]
-  Dest. BYTE representation :[ \x00]
-  level 0 copy_bytes Grow node16
-  Grow node48
-  Searching BYTE representation :[ \x72]
-  Searching BYTE representation :[ \x6F]
-  Searching BYTE representation :[ \x00]
-  Searching BYTE representation :[ \x72]
-  Searching BYTE representation :[ \x6F]
-  Searching BYTE representation :[ \x75]
-  Searching BYTE representation :[ \x6E]
-  Searching BYTE representation :[ \x00]
-  Dest. BYTE representation :[ \x72]
-  Dest. BYTE representation :[ \x6F]
-  Dest. BYTE representation :[ \x75]
-  Dest. BYTE representation :[ \x6E]
-  Dest. BYTE representation :[ \x00]
-  level 1 copy_bytes Grow node16
-  Grow node48
-  Level 0 Key size 3
+  add_child ENTER
+    parent size=0 nonempty=4
+  add_child ENTER
+    parent size=16 nonempty=16
+  add_child ENTER
+    parent size=256 nonempty=256
+  add_child ENTER
+    parent size=257 nonempty=256
+  add_child ENTER
+    parent size=258 nonempty=256
+  Grow node16
+  old_idx 0 length of keys 0
+  old_idx 1 length of keys 0
+  old_idx 2 length of keys 0
+  old_idx 3 length of keys 0
+  old_idx 4 length of keys 0
+  old_idx 5 length of keys 0
+  old_idx 6 length of keys 0
+  old_idx 7 length of keys 0
+  old_idx 8 length of keys 0
+  old_idx 9 length of keys 0
+  old_idx 10 length of keys 0
+  old_idx 11 length of keys 0
+  old_idx 12 length of keys 0
+  old_idx 13 length of keys 0
+  old_idx 14 length of keys 0
+  old_idx 15 length of keys 0
+  Inner_nodeSize is 259
+  Size of children 256
+  Computed index = 255 for key byte 114
+  BYTE representation :[ \x01]
+  BYTE representation :[ \x02]
+  BYTE representation :[ \x03]
+  BYTE representation :[ \x04]
+  BYTE representation :[ \x05]
+  BYTE representation :[ \x06]
+  BYTE representation :[ \x07]
+  BYTE representation :[ \x08]
+  BYTE representation :[ \x09]
+  BYTE representation :[ \x0A]
+  BYTE representation :[ \x0B]
+  BYTE representation :[ \x0C]
+  BYTE representation :[ \x0D]
+  BYTE representation :[ \x0E]
+  BYTE representation :[ \x0F]
+  BYTE representation :[ \x10]
+   prefix_match_index1 node key level 0  prefix_len 0
+
+  Length of key 3
+   [ r]
+  [ o]
+  [  ]
+  Level 0
   |}]
