@@ -20,18 +20,13 @@ end
 	let  node16 = 1
 	let  node48 = 2
 	let  node256 = 3
-	let leaf = 44
 
-	let  node4min = 2
 	let  node4max = 4
 
-	let  node16min = node4max + 1
 	let  node16max = 16
 
-	let  node48min = node16max + 1
 	let node48max = 48
 
-	let node256min = node48max + 1
 	let node256max = 256
 
 	let max_prefix_len = 10
@@ -39,68 +34,82 @@ end
 
 let char_list_to_byte_list cl =
     let bl  = [] in
-    List.map ( fun c ->   bl @ [(Bytes.init 1 ( fun _ -> c )  )]) cl
+    List.map ( fun c ->   bl @  [(Bytes.init 1 ( fun _ -> c  ))] ) cl
 
-let make_node_list nodemax node_type =
-  let rec loop_while node_list j_dx =
-      if j_dx < nodemax then(
-		let b = Bytes.create max_prefix_len |> Bytes.to_seq |> List.of_seq in
-		let b1 = Bytes.create node4max |> Bytes.to_seq |> List.of_seq in
-	    let inn = (
-		 Prefix((List.map List.hd (char_list_to_byte_list b)), 0 , 0), (*  Redundant *)
-		 node_type,
-         List.map List.hd (char_list_to_byte_list b1),
-         CCArray.make nodemax Empty
-		 ) in
-		loop_while (node_list @ [Inner_node inn]) (j_dx + 1 );
-      ) else CCArray.of_list node_list
-  in
-  loop_while [] 0
+let count_non_empty_children children =
+  let count = Array.fold_left( fun acc c ->
+    match c with
+    | Empty -> acc
+    | _ -> acc + 1
+  ) 0 children in
+  Printf.eprintf "count_non_empty_children: found %d non-empty in array of length %d\n%!"
+    count (Array.length children);
+  count
 
-let new_node4 =
+let new_node4() =
 
 	let b = Bytes.create max_prefix_len |> Bytes.to_seq |> List.of_seq in
-	let b1 = Bytes.create node4max |> Bytes.to_seq |> List.of_seq in
+    let keys = List.init 4 (fun _ -> Bytes.make 1 '\x00') in
+    let children = CCArray.make 4 Empty in  (* Explicit array *)
+  Printf.eprintf "DEBUG new_node4: array length=%d\n%!" (Array.length children);
+  Array.iteri (fun i child ->
+    match child with
+    | Empty -> Printf.eprintf "  [%d] = Empty ✓\n%!" i
+    | Leaf _ -> Printf.eprintf "  [%d] = Leaf ✗\n%!" i
+    | Inner_node _ -> Printf.eprintf "  [%d] = Inner_node ✗\n%!" i
+  ) children;
+
+    let count = count_non_empty_children children in
+    if count <> 0 then
+    Printf.eprintf "ERROR: Created node4 with %d non-empty children!\n%!" count;
+
 	let inn = (
 		 (* Prefix ((List.map List.hd (char_list_to_byte_list b)), 0 , 0), (\*  Redundant *\) *)
 
-		 Prefix ([], 0 , 0),
+		 Prefix (List.hd (char_list_to_byte_list b), 0 , 0),
 		 Node4 node4,
          (* List.map List.hd (char_list_to_byte_list b1), *)
-         [],
-		 make_node_list node4max (Node4 node4))
+         keys,
+         children)
 	in
 	inn
 
-let new_node16 : inner_node =
+let new_node16() =
 	let b = Bytes.create max_prefix_len |> Bytes.to_seq |> List.of_seq in
-	let b1 = Bytes.create node16max |> Bytes.to_seq |> List.of_seq in
+    let children = CCArray.make node16max Empty in  (* Explicit array *)
+    let count = count_non_empty_children children in
+    if count <> 0 then
+    Printf.eprintf "ERROR: Created node4 with %d non-empty children!\n%!" count;
+
 	let inn = (
-		 Prefix ([], 0 , 0),
+		 Prefix (List.hd (char_list_to_byte_list b), 0 , 0),
 		 Node16 node16,
          [],
-		 make_node_list node16max (Node16 node16))
+		 children)
 	in
 	inn
 
-let new_node48 : inner_node =
+let new_node48() =
 	let b = Bytes.create max_prefix_len |> Bytes.to_seq |> List.of_seq in
-	let b1 = Bytes.create node48max |> Bytes.to_seq |> List.of_seq in
-	let inn = (
-		 Prefix((List.map List.hd (char_list_to_byte_list b)), 0 , 0), (*  Redundant *)
-		 Node48 node48,
-        [],                                                           (* zero bytes.None is better *)
-		 make_node_list node256max (Node48 node48))
-	in
-	inn
+    let children = CCArray.make node48max Empty in  (* Explicit array *)
+    let count = count_non_empty_children children in
+    if count <> 0 then
+    Printf.eprintf "ERROR: Created node4 with %d non-empty children!\n%!" count;
+		(Prefix (List.hd (char_list_to_byte_list b), 0 , 0),
+   Node48 node48max, [], children)
 
-let new_node256 =
+
+let new_node256() =
 	let b = Bytes.create max_prefix_len |> Bytes.to_seq |> List.of_seq in
+    let children = CCArray.make node256max Empty in  (* Explicit array *)
+    let count = count_non_empty_children children in
+    if count <> 0 then
+    Printf.eprintf "ERROR: Created node4 with %d non-empty children!\n%!" count;
 	let inn = (
-		Prefix((List.map List.hd (char_list_to_byte_list b)), 0 , 0), (*  Redundant *)
+		Prefix (List.hd (char_list_to_byte_list b), 0 , 0),
 		Node256 node256,                                              (* Keys can't be arbitrary *)
-        [],                                                           (* zero bytes.None is better *)
-		make_node_list node256max (Node256 node256))
+         [],
+		 children)
 	in
 	inn
 
@@ -113,106 +122,151 @@ let trailing_zeros bitfield =
   in count 0
 
 let index n key =
-	match n with
-	  | ( meta, node_type, keys, _) ->
-	   match node_type with
-       |Node4  node4 ->
-         (match meta with
-          | Prefix (l, size , i2) ->
-            let rec loop_while j_dx=
-             if j_dx < size   then(
-			  if (Bytes.compare (List.nth keys j_dx) key = 0) then
-			     Bytes.make 1  (Char.chr j_dx)
-              else
-                loop_while ( j_dx + 1 )
-             )
-			 else(
-		        Bytes.make 1 (Char.chr 255)  (*TODO  Intended to indicate an exception now*)
-             )
-            in
-            loop_while 0
-         )
-
-      |Node16  node16 ->
-        ( match meta with
-          | Prefix (l, size , i2) ->
-            let bitfield = Array1.create Int32 c_layout 1 in
-            bitfield.{0} <- Int32.of_int 0b00000000;
-            let rec loop_while j_dx=
-             if j_dx < size   then(
-			  if (Bytes.compare (List.nth keys j_dx) key = 0) then(
-				bitfield.{0} <-  Int32.logor bitfield.{0}  (Int32.shift_left 1l j_dx);
-              );
-                loop_while ( j_dx + 1 )
-             ) else ()
-            in
-            loop_while 0;
-
-		    let mask =  Int32.to_int (Int32.shift_left (Int32.of_int 1) size) - 1 in
-		    bitfield.{0} <- Int32.logand  bitfield.{0} (Int32.of_int  mask);
-		   if bitfield.{0} != 0l then(
-			Bytes.make 1  (Char.chr (trailing_zeros bitfield.{0}))
-           )
-		   else(
-		        Bytes.make 1 (Char.chr 255)  (*TODO  Intended to indicate an exception now*)
-           )
-       )
-
-      |Node48  node48 ->
-		let index = (List.find_index (fun k -> Bytes.equal k key) keys) in
-        (match index with
-        | Some i ->
-			let n = Char.chr (min 255 i) in
-			Bytes.make 1   n
-        | None ->
-			Bytes.make 1 (Char.chr 255))
-
-      |Node256  node256 ->
-		key
-
-let find_child n key =          (*  How do we check if n is None or Some ?*)
-                                (* Is that check needed ? *)
-
-  let i = index n key in
-Fmt.pr "Computed index = %d for key byte %d\n"
-  (Bytes.get_uint8 i 0)
-  (Bytes.get_uint8 key 0);
-   match n with
-	  | ( meta, node_type, keys, children ) ->
-        match node_type with
-        | Node4 _
-        | Node16 _
-        | Node48 _
-        | Leaf _ ->
-		let idx =  Bytes.get_uint8 i 0 in
-		if idx = 255 then Empty else
-            let () = Fmt.pr "Index BYTE representation :[ \\x%02X]\n"  (Char.code (Bytes.get  i 0)) in
-			Array.get children idx (*  TODO Index check Exception handler*)
-
-	    | Node256 node256 ->
-		let idx =  Bytes.get_uint8 i 0 in
-		if idx = 255 then Empty else
-		 Array.get children (Bytes.get_uint8 key 0) (*  TODO Exception handler*)
-
-let count_non_empty_children children =
-  Array.fold_left( fun acc c ->
-              match c with | Empty ->
-                   acc
-                           | _ ->
-                   acc + 1) 0 children
-let find_child_lite n idx =
   match n with
-  | (_, Node48 _, keys, children) ->
-      if idx < Array.length children then Array.get children idx else Empty
-  | _ -> Empty
+  | (meta, node_type, keys, _) ->
+    match node_type with
+    | Node4 _ | Node16 _ ->
+      (match meta with
+       | Prefix (_, size, _) ->
+         let rec loop j_dx =
+           if j_dx < size then
+             let () = Printf.printf "Node4/16(%d) [  %c = %c ]" size (Char.chr (Bytes.get_uint8 key 0  )) (Char.chr (Bytes.get_uint8 (List.nth keys j_dx) 0)) in
+             if Bytes.compare (List.nth keys j_dx) key = 0 then
+               Char.chr j_dx   (* return position as char *)
+             else
+               loop (j_dx + 1)
+           else
+             Char.chr 255  (* not found *)
+         in
+         loop 0
+      )
+    | Node48 _ ->
+(match meta with
+   | Prefix (_, _, _) ->
+     let byte_key = Bytes.get_uint8 key 0 in
+     let map_byte =
+       Char.code (Bytes.get (List.nth keys byte_key) 0)
+     in
+     if map_byte = 0 then (
+       Printf.printf "Node48 miss for %02X\n%!" byte_key;
+       Char.chr 255
+     ) else (
+       Printf.printf "Node48 hit for %02X → child %d\n%!"
+         byte_key (map_byte - 1);
+       Char.chr (map_byte - 1)
+     ))
+    |  Node256 _ ->
+      let () = Printf.printf "Node256 [  %c  ]" (Char.chr (Bytes.get_uint8 key 0  )) in  (* or just key.[0] *)
+      (Char.chr (Bytes.get_uint8 key 0))  (* or just key.[0] *)
+
+
+      (* |Node16  _ -> *)
+      (*   ( match meta with *)
+      (*     | Prefix (_, size , _) -> *)
+      (*       let bitfield = Array1.create Int32 c_layout 1 in *)
+      (*       bitfield.{0} <- Int32.of_int 0b00000000; *)
+      (*       let rec loop_while j_dx= *)
+      (*        if j_dx < size   then( *)
+	  (*   	  if (Bytes.compare (List.nth keys j_dx) key = 0) then( *)
+	  (*   		bitfield.{0} <-  Int32.logor bitfield.{0}  (Int32.shift_left 1l j_dx); *)
+      (*         ); *)
+      (*           loop_while ( j_dx + 1 ) *)
+      (*        ) else () *)
+      (*       in *)
+      (*       loop_while 0; *)
+
+	  (*       let mask =  Int32.to_int (Int32.shift_left (Int32.of_int 1) size) - 1 in *)
+	  (*       bitfield.{0} <- Int32.logand  bitfield.{0} (Int32.of_int  mask); *)
+	  (*      if bitfield.{0} != 0l then( *)
+	  (*   	Bytes.make 1  (Char.chr (trailing_zeros bitfield.{0})) *)
+      (*      ) *)
+	  (*      else( *)
+	  (*           Bytes.make 1 (Char.chr 255)  (\*TODO  Intended to indicate an exception now*\) *)
+      (*      ) *)
+      (*  ) *)
+let find_child n key =
+  let i = index n key in
+  Fmt.pr "Computed index = %c for key byte %c\n"
+    i
+    (Char.chr (Bytes.get_uint8 key 0));
+
+  match n with
+  | (meta, node_type, keys, children) ->
+    match node_type with
+    | Node4 _ | Node16 _ ->
+        let idx = Char.code i in
+        Printf.eprintf "find_child Node4/16: idx=%d, array_length=%d\n" idx (Array.length children);
+        if idx = 255 then (
+          Printf.eprintf "find_child Node4/16: not found (255)\n";
+          Empty
+        ) else if idx >= Array.length children then (
+          Printf.eprintf "find_child Node4/16: out of bounds\n";
+          Empty
+        ) else (
+          Printf.eprintf "find_child Node4/16: returning children[%d]\n" idx;
+          let result = children.(idx) in
+          (match result with
+           | Empty -> Printf.eprintf "  -> was Empty\n"
+           | Leaf _ -> Printf.eprintf "  -> was Leaf\n"
+           | Inner_node _ -> Printf.eprintf "  -> was Inner_node\n");
+          result
+        )
+
+    | Node48 _ ->
+        let idx = Char.code i in
+        Printf.eprintf "find_child Node48: idx=%d\n" idx;
+        if idx = 255 then Empty
+        else (
+          let real_idx = idx - 1 in
+          Printf.eprintf "find_child Node48: real_idx=%d\n" real_idx;
+          if real_idx < 0 || real_idx >= Array.length children then Empty
+          else children.(real_idx)
+        )
+
+    | Node256 _ ->
+        Printf.eprintf "find_child Node256: using key byte directly\n";
+        let idx = Char.code i in
+        if idx = 255 then Empty
+        else children.(Bytes.get_uint8 key 0)
+
+    | Leaf _ ->
+        Printf.eprintf "find_child: got Leaf, returning Empty\n";
+        Empty
+
+(* let find_child n key =          (\*  How do we check if n is None or Some ?*\) *)
+(*                                 (\* Is that check needed ? *\) *)
+
+(*   let i = index n key in *)
+(*   Fmt.pr "Computed index = %d for key byte %c\n" *)
+(*   (Bytes.get_uint8 i 0) *)
+(*   (Char.chr (Bytes.get_uint8 key 0)); *)
+(*    match n with *)
+(* 	  | ( _, node_type, _, children ) -> *)
+(*         match node_type with *)
+(*         | Node4 _ *)
+(*         | Node16 _ *)
+(*         | Node48 _ *)
+(*         | Leaf _ -> *)
+(* 		let idx =  Bytes.get_uint8 i 0 in *)
+(* if idx = 0 || idx > Array.length children then Empty else *)
+(*             let () = Fmt.pr "Index BYTE representation :[ \\x%02X]\n"  (Char.code (Bytes.get  i 0)) in *)
+(* let real_idx = idx - 1 in  (\* Node48 stores idx+1 *\) *)
+(*             if real_idx < 0 || real_idx >= Array.length children then Empty *)
+(*             else children.(real_idx) *)
+
+(* 	    | Node256 _ -> *)
+(* 		let idx =  Bytes.get_uint8 i 0 in *)
+(* 		if idx = 255 then Empty else *)
+(* 		 Array.get children (Bytes.get_uint8 key 0) (\*  TODO Exception handler*\) *)
+
 
 let grow (n : inner_node ) =
 	(match n with
 	  | ( meta, node_type, keys, children ) ->
 	   (match node_type with
-       | Node4 node4 ->
+       | Node4 _ ->
 
-         let (  n_16meta, node_type,  n_16keys,  n_16children) = new_node16 in
+         let (  _,_,  _,  n_16children) = new_node16() in
 
            (match meta with
             | Prefix (l, i1, i2) ->
@@ -254,26 +308,37 @@ let count = count_non_empty_children n_16children in
             (*        n_16children) *)
             )
 
-	   | Node16 node16 ->     (*Create a Node48 and set values  *)
+	   | Node16 _ ->     (*Create a Node48 and set values  *)
          Printf.printf "Grow node16\n";
-         let (  n_48meta, node_type,  n_48keys,  n_48children) = new_node48 in
+         let (  _, _,  _,  n_48children) = new_node48() in
          (match meta with
           | Prefix (l, i1, i2) ->
-let new_n_48keys = ref [] in
-        let next_idx = ref 0 in
-        for old_idx = 0 to (i1 - 1)  do
-          let child = Array.get children old_idx in
-          match child with
-          | Empty -> ()
-          | _ ->
-            Array.set n_48children !next_idx child;
-            Printf.printf "old_idx %d length of keys %d\n" old_idx (List.length keys);
-let new_key_byte = Bytes.make 1 (Char.chr (!next_idx + 1)) in
-            new_n_48keys := !new_n_48keys @ [new_key_byte];
-            next_idx := !next_idx + 1
-        done;
+  let n_48keys = List.init 256 (fun _ -> Bytes.make 1 '\x00') in
+
+     (* Step 2: build a temporary mapping: byte -> idx+1 *)
+     let mapping = ref [] in
+     let next_idx = ref 0 in
+     for old_idx = 0 to i1 - 1 do
+       let child = Array.get children old_idx in
+       match child with
+       | Empty -> ()
+       | _ ->
+           Array.set n_48children !next_idx child;
+           let key_byte = Bytes.get_uint8 (List.nth keys old_idx) 0 in
+           mapping := (key_byte, !next_idx + 1) :: !mapping;
+           next_idx := !next_idx + 1
+     done;
+
+     (* Step 3: update only those bytes that appear in mapping *)
+     let n_48keys =
+       List.mapi (fun byte _ ->
+         match List.assoc_opt byte !mapping with
+         | Some v -> Bytes.make 1 (Char.chr v)
+         | None -> Bytes.make 1 '\x00'
+       ) n_48keys
+     in
 let count = count_non_empty_children n_48children in
-(Prefix (l, count, i2), Node48 node48, !new_n_48keys, n_48children)
+(Prefix (l, count, i2), Node48 node48, n_48keys, n_48children)
 
           (*  let index = 0 in *)
           (*  let new_n_48keys = *)
@@ -298,19 +363,23 @@ let count = count_non_empty_children n_48children in
           (*        new_n_48keys, *)
           (*        n_48children) *)
            )
-       | Node48 node48 ->
+       | Node48 _ ->
          Printf.printf "Grow node48\n";
-         let (  n_256meta, node_type,  n_256keys,  n_256children) = new_node256 in
+         let (  _,_,  n_256keys,  n_256children) = new_node256() in
          (match meta with
-          | Prefix (l, i1, i2) ->
-for idx = 0 to List.length keys - 1 do
-    let k = List.nth keys idx in
-    let child = Array.get children idx in
-    match child with
-    | Empty -> ()
-    | _ ->
-        let byte_index = Bytes.get_uint8 k 0 in
-        Array.set n_256children byte_index child
+          | Prefix (l, _, i2) ->
+for byte = 0 to 255 do
+       let key_entry = List.nth keys byte in
+       let mapped_val = Bytes.get_uint8 key_entry 0 in
+       if mapped_val <> 0 then (
+         let child_idx = mapped_val - 1 in
+         let child = Array.get children child_idx in
+         match child with
+         | Empty -> ()
+         | _ ->
+             Array.set n_256children byte child
+       )
+
 done;
 
            (* let rec loop_while i length_of_keys = *)
@@ -337,7 +406,7 @@ done;
           (* (\* in *\) *)
           (* loop_while (Bytes.make 1 (Char.chr 0)) (List.length keys) *)
          )
-       | Node256 node256 -> n
+       | Node256 _ -> n
        | Leaf _ -> n
        )
     )
@@ -349,155 +418,239 @@ let maxsize node_type =
       | Node48 _-> node48max
       | Node256 _-> node256max
 
-
 let rec add_child key parent child =
 
-   Printf.eprintf "add_child ENTER \n%!";
   (match parent with
-   | (Prefix(_, size, _), nt, _, children) ->
+   | (Prefix(_, size, _), _, _, children) ->
        Printf.eprintf "  parent size=%d nonempty=%d\n%!"
          size (count_non_empty_children children)
    | _ -> ());
 	match parent with
 	  | ( meta, node_type, keys, children ) ->
-          let Prefix(l, size, len) = meta in
+          let Prefix(_, size, _) = meta in
+
     if (count_non_empty_children children)== maxsize node_type then(
             let grow_n = grow parent in
             add_child key grow_n child)
     else (
 	   match node_type with
-       | Node4 node4 ->
-        let (  n_4meta, node_type,  n_4keys,  n_4children) = parent in
+       | Node4 _ ->
+        let (  _, node_type,  n_4keys,  n_4children) = parent in
         (match meta with
-          | Prefix (l, i1, i2) ->
+          | Prefix (l, _, i2) ->
+        let active_keys = List.filteri (fun i _ -> i < size) n_4keys in
         let idx =
             let rec loop_while id_x= (* TODO Check the spec. of 'compare' *)
-            if id_x < List.length n_4keys && Bytes.compare key (List.nth n_4keys id_x) > 0 then(
+            if id_x < List.length active_keys && Bytes.compare key (List.nth active_keys id_x) > 0 then(
                  loop_while (id_x + 1))
                else  id_x
              in
              loop_while 0;
              in
-         (* The logic used for other nodes is dissimilar to this but a bug was causing *)
-         (* infinite recursion. So this is used now. *)
-         let (split_before_keys, split_after_keys) =
-          let rec split_at_index i acc =  function
-            | [] -> (List.rev acc, [])
-            | h :: t as lst ->
-              if i = 0 then (List.rev acc, lst)
-              else split_at_index (i - 1) (h :: acc) t
-          in
-          split_at_index idx [] n_4keys
-        in
-        let new_n4_keys = split_before_keys @ [key] @ split_after_keys in
-            let new1_n4_keys =
-                (match n_4keys with
-                  | [] -> [key]
-                  |_::_ ->
-                if( idx < List.length new_n4_keys ) then(
-                 List.mapi (fun j el -> if j = idx then
-                                        key
-                                        else el) new_n4_keys(* TODO Array is mutable and needed here*)
-                )
-                else(
-                   new_n4_keys
-                 )) in
+     let rec split_at i acc = function
+       | [] -> (List.rev acc, [])
+       | h::t as lst -> if i = 0 then (List.rev acc, lst) else split_at (i-1) (h::acc) t
+     in
+     let before, after = split_at idx [] active_keys in
+     let new_keys = before @ [key] @ after in
+     if size < Array.length n_4children then (
+        for i = size downto idx + 1 do
+          if i < Array.length n_4children && i - 1 >= 0 then
+            n_4children.(i) <- n_4children.(i-1)
+        done;
+     );
 
-                if idx <= size && idx <
-                    Array.length n_4children then
-                    Array.set n_4children idx child ;        (*  This child should be a parameter*)
+        (* 4️⃣ Insert child at correct position *)
+        if idx < Array.length n_4children then(
+          n_4children.(idx) <- child;
+          let() =  Printf.eprintf "Added child at %d -> %d\n%!" idx size in
 	             (
                  Prefix (l, size + 1, i2), (* TODO Increment size of the parent and child properly*)
 		         node_type,
-                 new1_n4_keys,
+                 new_keys,
                  n_4children)
         )
-       | Node16 node16 ->
-        let (  n_16meta, node_type,  n_16keys,  n_16children) = parent in
-        (match meta with
-          | Prefix (l, i1, i2) ->
-		let idx = i1 in
-        let bitfield = Array1.create Int32 c_layout 1 in
-        bitfield.{0} <- Int32.of_int 0b00000000;
-        let rec loop_while jdx=
-            if idx < jdx then
-			if Bytes.compare (List.nth keys jdx)  key >= 0 then
-		    bitfield.{0} <- Int32.logor  bitfield.{0} (Int32.shift_left (Int32.of_int 1) jdx)
-			else
-            loop_while (jdx + 1);
-        in
-        loop_while 0;
-		let mask =  Int32.to_int (Int32.shift_left (Int32.of_int 1) i1) - 1 in
-		bitfield.{0} <- Int32.logand  bitfield.{0} (Int32.of_int  mask);
-        let idx =
-		if (Int32.lognot bitfield.{0} ) == 0l then(
-			 trailing_zeros bitfield.{0}
-		) else idx in
-
-        let n16_keys =
-        let rec loop_while jdx modified_keys_acc =
-            if jdx > idx then(
-            if jdx < List.length keys && Bytes.compare key (List.nth keys (jdx - 1)) > 0 then(
-                let c = Array.get n_16children (jdx - 1) in
-                Array.set n_16children jdx c;
-                let modified_keys =
-                List.mapi (fun j el -> if jdx = j then
-                           List.nth keys (jdx - 1)
-                           else el) modified_keys_acc (* TODO Array is mutable and needed here*)
-                in loop_while (jdx - 1) modified_keys)
-            else loop_while (jdx - 1) modified_keys_acc)
-            else modified_keys_acc
-        in
-        loop_while (Array.length children) keys in
-
-         Printf.printf "Size is %d\n" size;
-         if idx <= size && idx <
-                    Array.length n_16children then
-                    Array.set n_16children idx child;        (*  This child should be a parameter*)
+        else(
+            Printf.eprintf "ERROR: key_idx=%d >= array_len=%d\n%!"
+            idx (Array.length n_4children);
 	             (
-                 Prefix (l, size + 1, i2), (* TODO Increment size of the parent and child properly*)
+                 Prefix (l, size, i2), (* TODO Increment size of the parent and child properly*)
 		         node_type,
-                 n_16keys,
-                 n_16children)
-        )
+                 new_keys,
+                 n_4children)
+      ))
+       | Node16 _ ->
+    let (_, node_type, n16_keys, n16_children) = parent in
+    (match meta with
+     | Prefix (l, size, i2) ->
 
-      | Node48 node48 ->
-        let (  n_48meta, node_type,  n_48keys,  n_48children) = parent in
-        match meta with
-          | Prefix (l, i1, i2) ->
-		    let i =
-            let rec loop_while i_dx idx len =
-            if idx < len then(
-              match (Array.get children idx) with
-              | Empty -> loop_while i_dx (idx + 1) len;
-              | _ -> loop_while  (i_dx + 1) (idx + 1) len;
-            )
-            else i_dx
-            in
-            loop_while  0 0 (Array.length children) in
-            let byte_key = Bytes.get_uint8 key 0 in
-            let n_48keys = List.mapi (fun i el -> if i = byte_key then
-                                       Bytes.make 1 (Char.chr (i + 1))
-                                  else el) n_48keys in (* TODO Array is mutable and needed here*)
-                if  i < (Array.length n_48children) then
-                    Array.set n_48children  i child;        (*  This child should be a parameter*)
-	             (
-                 Prefix (l, size + 1, i2),
-		         node_type,
-                 n_48keys,
-                 n_48children)
+       (* 1️⃣ Find insertion index based on key comparison *)
+       let rec find_idx i =
+         if i >= size then size
+         else if Bytes.compare key (List.nth n16_keys i) < 0 then i
+         else find_idx (i + 1)
+       in
+       let idx = find_idx 0 in
+
+       (* 2️⃣ Insert key immutably *)
+       let rec split_at i acc = function
+         | [] -> (List.rev acc, [])
+         | h::t as lst -> if i = 0 then (List.rev acc, lst) else split_at (i-1) (h::acc) t
+       in
+       let before, after = split_at idx [] n16_keys in
+       let new_keys = before @ [key] @ after in
+
+       (* 3️⃣ Shift children array to make space *)
+       for i = size downto idx + 1 do
+         n16_children.(i) <- n16_children.(i-1)
+       done;
+
+       (* 4️⃣ Insert new child *)
+       n16_children.(idx) <- child;
+
+       Printf.eprintf "Added child at %d -> %s\n%!" idx
+         (match child with
+          | Empty -> "Empty"
+          | Inner_node _ -> "Inner_node"
+          | Leaf _ -> "Leaf_node");
+
+       (* 5️⃣ Return updated Node16 *)
+       (Prefix (l, size + 1, i2), node_type, new_keys, n16_children)
+    )
+
+(*         let (  _, node_type,  _,  n_16children) = parent in *)
+(* (\*         (match meta with *\) *)
+(*           | Prefix (l, i1, i2) -> *)
+(* 		let idx = i1 in *)
+(*         let bitfield = Array1.create Int32 c_layout 1 in *)
+(*         bitfield.{0} <- Int32.of_int 0b00000000; *)
+(*         let rec loop_while jdx= *)
+(*             if idx < jdx then *)
+(* 			if Bytes.compare (List.nth keys jdx)  key >= 0 then *)
+(* 		    bitfield.{0} <- Int32.logor  bitfield.{0} (Int32.shift_left (Int32.of_int 1) jdx) *)
+(* 			else *)
+(*             loop_while (jdx + 1); *)
+(*         in *)
+(*         loop_while 0; *)
+(* 		let mask =  Int32.to_int (Int32.shift_left (Int32.of_int 1) i1) - 1 in *)
+(* 		bitfield.{0} <- Int32.logand  bitfield.{0} (Int32.of_int  mask); *)
+(*         let idx = *)
+(* 		if (Int32.lognot bitfield.{0} ) == 0l then( *)
+(* 			 trailing_zeros bitfield.{0} *)
+(* 		) else idx in *)
+
+(*         let n16_keys = *)
+(*         let rec loop_while jdx modified_keys_acc = *)
+(*             if jdx > idx then( *)
+(*             if jdx < List.length keys && Bytes.compare key (List.nth keys (jdx - 1)) > 0 then( *)
+(*                 let c = Array.get n_16children (jdx - 1) in *)
+(*                 Array.set n_16children jdx c; *)
+(*                 let modified_keys = *)
+(*                 List.mapi (fun j el -> if jdx = j then *)
+(*                            List.nth keys (jdx - 1) *)
+(*                            else el) modified_keys_acc (\* TODO Array is mutable and needed here*\) *)
+(*                 in loop_while (jdx - 1) modified_keys) *)
+(*             else loop_while (jdx - 1) modified_keys_acc) *)
+(*             else modified_keys_acc *)
+(*         in *)
+(*         loop_while (Array.length children) keys in *)
+
+         (* Printf.printf "Size is %d\n" size; *)
+         (* if  idx < *)
+         (*            Array.length n_16children then *)
+         (*            Array.set n_16children idx child;        (\*  This child should be a parameter*\) *)
+         (*          Printf.eprintf "Added child at %d -> %s\n%!" idx *)
+         (*            (match child with *)
+         (*             | Empty -> "Empty" *)
+         (*             | Inner_node _ -> "Inner_node" *)
+         (*             | Leaf _ -> "Leaf_node"); *)
+	     (*         ( *)
+         (*         Prefix (l, size + 1, i2), (\* TODO Increment size of the parent and child properly*\) *)
+		 (*         node_type, *)
+         (*         n16_keys, *)
+         (*         n_16children) *)
+        (* ) *)
+
+| Node48 _->
+Printf.printf "Node48";
+let (_, node_type, n_48keys, n_48children) = parent in
+match meta with
+| Prefix (l, _, i2) ->
+    (* 1️⃣ Find first empty slot in children *)
+    let rec find_empty i =
+      if i >= Array.length n_48children then failwith "Node48 full"
+      else if n_48children.(i) = Empty then i
+      else find_empty (i + 1)
+    in
+    let idx = find_empty 0 in
+
+    (* 2️⃣ Get the key byte *)
+    let byte_key = Bytes.get_uint8 key 0 in
+
+    (* 4️⃣ Update key -> child index mapping *)
+    let n_48keys =
+      List.mapi (fun i el ->
+        if i = byte_key then Bytes.make 1 (Char.chr (idx + 1))
+        else el
+      ) n_48keys
+    in
+
+    (* 5️⃣ Set child in the array *)
+    n_48children.(idx) <- child;
+
+    Printf.eprintf "Added child at idx=%d for byte=%d\n%!" idx byte_key;
+
+    (* 6️⃣ Return updated Node48 *)
+    (Prefix (l, size + 1, i2), node_type, n_48keys, n_48children)
+
        )
+(* Logging wrapper for add_child *)
+let  add_child_logged key parent child =
+  let count_nonempty = count_non_empty_children (match parent with (_,_,_,children) -> children | _ -> [||]) in
+  let keys_list =
+    match parent with
+    | (_, _, keys, _) -> List.map (fun b -> Printf.sprintf "%02X" (Bytes.get_uint8 b 0)) keys
+    | _ -> []
+  in
+  let () = Printf.eprintf "add_child called: key=%02X parent_size=%d nonempty_children=%d keys=[%s]\n%!"
+      (Bytes.get_uint8 key 0)
+      (match parent with
+       | (Prefix(_, s, _), _, _, _) -> s
+       | _ -> -1)
+      count_nonempty
+      (String.concat "," keys_list)
+  in
+
+  (* Call original add_child *)
+  let updated_parent = add_child key parent child in
+
+  (* Log the result *)
+  let updated_keys =
+    match updated_parent with
+    | (_, _, keys, _) -> List.map (fun b -> Printf.sprintf "%02X" (Bytes.get_uint8 b 0)) keys
+    | _ -> []
+  in
+  let updated_nonempty =
+    match updated_parent with
+    | (_, _, _, children) -> count_non_empty_children children
+    | _ -> -1
+  in
+  Printf.eprintf "add_child returned: updated_keys=[%s] nonempty_children=%d\n%!"
+    (String.concat "," updated_keys) updated_nonempty;
+
+  updated_parent
+
 
 let rec minimum node =
 
 	match node with
 	  |Inner_node inn ->
        (match inn with
-        | ( meta, node_type, keys, children )->
+        | ( _, node_type, keys, children )->
 	    (match node_type with
-	     | Node4 v |Node16 v ->
+	     | Node4 _ |Node16 _ ->
 		     minimum (Array.get  children 0)
-         | Node48 node48 ->
+         | Node48 _ ->
           let i =
             let rec loop_while idx =
             if Bytes.compare (List.nth keys idx)  (Bytes.make 1 (Char.chr 0)) == 0 then
@@ -510,7 +663,7 @@ let rec minimum node =
             let child = Array.get children   (Int.of_string (Bytes.to_string (List.nth keys i)) - 1)    in
             minimum child
 
-        | Node256 node256 ->
+        | Node256 _ ->
             let i =
             let rec loop_while idx =
             if (Bytes.compare (List.nth keys idx) (Bytes.make 1  '\x00')) == 0 then
@@ -522,7 +675,7 @@ let rec minimum node =
             in
             let child = Array.get children   (Int.of_string (Bytes.to_string (List.nth keys i)) - 1)    in
             minimum child
-	    | Leaf l  -> node
+	    | Leaf _  -> node
         )
        )
 
@@ -555,12 +708,12 @@ let  prefix_match_index1 inner_node key level =
 	|Inner_node inn ->
     let id_x =
     (match inn with
-	| ( meta, node_type, keys, children )->
+	| ( meta, _,_,_ )->
         match meta with
-          | Prefix (prefix, i1, prefix_len) ->
+          | Prefix (prefix, _, prefix_len) ->
              let rec loop_while idx pref =
                if idx < prefix_len && (level + idx) < List.length key &&
-                  (List.nth key (level + idx) == List.nth pref idx) then(
+                  (Bytes.equal (List.nth key (level + idx))  (List.nth pref idx)) then(
 
                  if idx == (max_prefix_len-1) then(
                      match (minimum inner_node) with
@@ -589,8 +742,8 @@ let  prefix_match_index l kv level =
     let result =
     let rec loop_while i  =
       if i < limit then(
-		if (List.nth kv1.key  (level + i)) !=
-		   (List.nth kv.key  (level + i)) then(
+		if (Bytes.compare (List.nth kv1.key  (level + i))
+		   (List.nth kv.key  (level + i)) <> 0) then(
         i
         )
         else
@@ -604,25 +757,25 @@ let copy key_list_src key_list_dest level =
    List.mapi (fun j el -> if j <= level then
                           el
                           else (List.nth  key_list_dest j)) key_list_src(* TODO Array is mutable*)
-(*  Find the null byte or append it to the key if it is not found*)
+
 let terminate key =
-   let byte =  (Bytes.make 1 '\x00') in
-	match (List.find_index (fun elt ->  if (Bytes.compare (Bytes.make 1 '\x00') elt == 0) then true else false) key) with
-   | Some i -> key
-   | None -> List.append key [(Bytes.make 1 '\x00')]
+  Printf.eprintf "terminate INPUT: [%s]\n"
+    (String.concat "," (List.map (fun b ->
+      Printf.sprintf "%02X" (Bytes.get_uint8 b 0)) key));
 
-let copy_bytes src dest level =
- List.iter ( fun k ->
-    Fmt.pr "Source BYTE representation :[ \\x%02X]\n" (Char.code (Bytes.get  k 0))
-  ) src;
- List.iter ( fun k ->
-    Fmt.pr "Dest. BYTE representation :[ \\x%02X]\n" (Char.code (Bytes.get  k 0))
-  ) dest;
-  Printf.printf "level %d copy_bytes %s" level (String.concat " " (List.map (fun x -> Bytes.to_string x)
-                                                    (List.filteri (fun i _ -> i >= level && i < (List.length dest )) src)))
+  let result = match (List.find_index (fun elt ->
+    Bytes.compare (Bytes.make 1 '\x00') elt == 0) key) with
+    | Some _ -> key
+    | None -> List.append key [(Bytes.make 1 '\x00')]
+  in
 
+  Printf.eprintf "terminate OUTPUT: [%s]\n"
+    (String.concat "," (List.map (fun b ->
+      Printf.sprintf "%02X" (Bytes.get_uint8 b 0)) result));
+  result
 
 let rec insert (tr : tree) node key value level  =
+
   (match node with
   | Empty ->
     let new_key = List.map( fun x -> x ) key in
@@ -632,35 +785,75 @@ let rec insert (tr : tree) node key value level  =
              (match l with
               | leaf_node  ->
              (match leaf_node with | KeyValue kv ->
+              Printf.eprintf "INSERT: Leaf case - existing key=%s, new key=%s\n%!"
+                    (String.concat "" (List.map Bytes.to_string kv.key))
+                    (String.concat "" (List.map Bytes.to_string key));
+
              if compare_keys  kv.key  key == 0 then(
              kv.value <- value;
              (true,  Leaf (KeyValue  kv))
-             ) else
-             let kv = {key = key; value = value }in
+             ) else(
+             Printf.eprintf "INSERT: Splitting leaf, creating Node4\n%!";
              let new_key = List.map( fun x -> x ) key in (*  Create a new leaf*)
-             let kv = {key = new_key; value = value }in
-             let new_leaf = KeyValue kv in
-             let limit = prefix_match_index l kv  level in
-             let new_node = new_node4 in
+             let kv_new = {key = new_key; value = value }in
+             let new_leaf = KeyValue kv_new in
+             let limit = prefix_match_index l kv_new  level in
+             let new_node = new_node4() in
              (match new_node with
              | ( meta, node_type, keys, children )->
-                 (match meta with
-                   | Prefix (prefix, i1, prefix_len) ->
+              let count = count_non_empty_children children in
+              if count <> 0 then
+                Printf.eprintf "WARNING: new_node4 has %d non-empty children!\n%!" count;
+               (match meta with
+                   | Prefix (prefix, i1, _) ->
                      (* copy_bytes prefix key level; *)
+                     let shared_prefix = List.filteri (fun i _ ->
+                             i >= level && i < (level + limit)
+                           ) key in
 
-                     let copied_prefix = copy prefix (List.filteri (fun i _ -> i >= level && i < (List.length key )) key)  level in
-                     let level = level + limit in
-                     let parent =
-                       (
-                       Prefix (copied_prefix, i1, limit), (*  Limit it set here*)
-                       node_type,
+                     Printf.eprintf "INSERT: shared prefix length=%d\n%!" (List.length shared_prefix);
+
+                     let new_level = level + limit in
+                     Printf.eprintf "INSERT: new_level=%d\n%!" new_level;
+                     Printf.eprintf "INSERT: old_key length=%d, new_key length=%d\n%!"
+                        (List.length kv.key) (List.length key);
+                     if new_level >= List.length kv.key || new_level >= List.length key then (
+                       Printf.eprintf "ERROR: new_level=%d exceeds key length!\n%!" new_level;
+                       failwith "Key too short for level"
+                     );
+
+                     let old_key_byte = List.nth kv.key new_level in
+                     let new_key_byte = List.nth key new_level in
+
+                     Printf.eprintf "INSERT: old leaf goes at byte=%02X\n%!"
+                       (Bytes.get_uint8 old_key_byte 0);
+                     Printf.eprintf "INSERT: new leaf goes at byte=%02X\n%!"
+                       (Bytes.get_uint8 new_key_byte 0);
+
+                     let parent = (
+                       Prefix (List.hd (char_list_to_byte_list
+                         (Bytes.create max_prefix_len |> Bytes.to_seq |> List.of_seq)),
+                         0,  (* size starts at 0 *)
+                         limit),  (* prefix_len is the shared part *)
+                       Node4 node4,
                        keys,
-                       children) in
-                     let updated_node = add_child (List.nth kv.key level) parent node in
-                     let changed_node = add_child (List.nth key  level ) updated_node (Leaf new_leaf) in
+                       children
+                     ) in
+                     Printf.eprintf "DEBUG: old leaf key=%s, new leaf key=%s\n"
+                       (String.concat "" (List.map Bytes.to_string kv.key))
+                       (String.concat "" (List.map Bytes.to_string kv_new.key));
+
+                     (* ... later when calling add_child ... *)
+                     Printf.eprintf "DEBUG: Adding old leaf with key byte=%02X\n"
+                       (Bytes.get_uint8 old_key_byte 0);
+                     let updated_node = add_child_logged old_key_byte parent node in
+
+                     Printf.eprintf "DEBUG: Adding new leaf with key byte=%02X\n"
+                       (Bytes.get_uint8 new_key_byte 0);
+                     let changed_node = add_child_logged new_key_byte updated_node (Leaf new_leaf) in
                      (false,Inner_node changed_node )
                 )
-             )))
+             ))))
     | Inner_node inn ->
       match inn with
         ( meta_in, node_type_in, keys_in, children_in ) as inn->
@@ -669,11 +862,15 @@ let rec insert (tr : tree) node key value level  =
                       if prefix_len_in != 0 then(
                         let prefix_match_result = prefix_match_index1 node key level in
                         if prefix_match_result != prefix_len_in then(
-                          let new_node = new_node4 in
+                          let new_node = new_node4() in
 
                          (match new_node with
                           | ( meta, node_type, keys, children )->
-                            match meta with
+                              let count = count_non_empty_children children in
+                                  Printf.eprintf "DEBUG: new_node4 created with %d non-empty children!\n%!" count;
+                                  if count > 0 then
+                                    Printf.eprintf "ERROR: new_node4 should have 0 children!\n%!";
+                              match meta with
                               | Prefix (new_prefix, i1, prefix_len) ->
 
                                 let copied_prefix = copy prefix_in new_prefix prefix_match_result in
@@ -696,7 +893,7 @@ let rec insert (tr : tree) node key value level  =
                                   in
                                   let kv = {key = key; value = value }in
                                   let new_leaf = KeyValue kv in
-                                  let changed_node = add_child (List.nth key (level + prefix_match_result)) new_node4 (Leaf new_leaf) in
+                                  let changed_node = add_child_logged (List.nth key (level + prefix_match_result)) new_node4 (Leaf new_leaf) in
                                   (false, Inner_node changed_node)
                                   )
                                   else(
@@ -732,36 +929,39 @@ let rec insert (tr : tree) node key value level  =
              let new_leaf = KeyValue kv in (*TODO Remove duplicate Construction of new_leaf*)
           let next = find_child inn (List.nth  key level ) in
              (match next with
-             | Empty  ->  let modified_node = add_child (List.nth  key level ) inn (Leaf new_leaf) in (false,Inner_node modified_node)
+             | Empty  ->  let modified_node = add_child_logged (List.nth  key level ) inn (Leaf new_leaf) in (false,Inner_node modified_node)
              | _ ->  insert tr  next key value (level+1)
              )
-    |  _ -> failwith "Unknown pattern"
     )
 
 (* Size is not updated now TODO  *)
 let insert_tree tree key value =
 	let key = terminate key in
+
 	let updated_tree = insert tree tree.root key value 0 in
 	match (updated_tree) with
 	|_, node->
     node
 
 let rec search node key level =
+
 	match ( node ) with
     | Leaf l ->
              (match l with
               | leaf_node  ->
               match leaf_node with | KeyValue kv ->
 			  let result = compare_keys key kv.key in
+              Printf.printf "Search key %c compared with %c " (Char.chr (Bytes.get_uint8 (List.nth key 0) 0))
+                                                              (Char.chr (Bytes.get_uint8 (List.nth kv.key 0) 0));
 			  if result == 0 then
 				Some kv.value
               else None
              )
     | Inner_node n ->
          (match n with
-          |( meta, node_type, keys, children ) ->
+          |( meta, _,_,_ ) ->
                  (match meta with
-                 | Prefix (prefix, i1, prefix_len) ->
+                 | Prefix (_, _, prefix_len) ->
                  let pmi =  prefix_match_index1 node key level in
                  let() = Printf.printf " prefix_match_index1 node key level %d  prefix_len %d\n" pmi prefix_len in
                  if prefix_match_index1 node key level != prefix_len then
@@ -770,31 +970,46 @@ let rec search node key level =
                      let level = level + prefix_len in
                      let () = Fmt.pr "\nLength of key %d\n "  (List.length key) in
                      let () = List.iter ( fun k ->
-                        Fmt.pr "[ %c]\n" (Bytes.get  k 0)
+                        Fmt.pr "[ %c]\n" (Char.chr (Bytes.get_uint8  k 0))
                       ) key in
                      Printf.printf "Level %d\n" level;
-                     if (level - 1) < (List.length key) then
+                     if level >= (List.length key) then
                        None
                      else
                      let child = find_child n (List.nth  key level ) in
-                     match ( node ) with
+                     match ( child ) with
                      | Empty -> None
-                     | _ -> search node key (level + 1)
+                     | _ -> search child key (level + 1)
                      )
         )
      | Empty -> None
 
+let log_keys node =
+     (match node with
+      | Inner_node inn ->
+        (match inn with
+           |(  Prefix(_, _, _), _, keys,_ ) ->
+Printf.printf "Searching in Node keys: [";
+           List.iter ( fun k ->
+               Fmt.pr "[ %c]" (Char.chr (Bytes.get_uint8  k 0))
+             ) keys;
+Printf.printf "]\n%!";)
+      |Leaf _ -> Printf.printf "Searching leaves";
+      |Empty -> Printf.printf "Searching empty nodes";
+    )
+
 
 let search_after_terminating node key level =
-  search node (terminate key) level
+  log_keys node;
+  search node (terminate  key) level
 
 end
 
 module type RADIXOperator = sig
   type 'a radix_node = 'a
   include  module type of MakeRadixNode ( struct type 'a t = 'a radix_node end )
-  val new_node4 : meta * node_type * bytes list * node array
-  val new_node16 : meta * node_type * bytes  list * node array
+  val new_node4 : unit -> meta * node_type * bytes list * node array
+  val new_node16 : unit -> meta * node_type * bytes  list * node array
   val add_child : bytes -> meta * node_type * bytes   list * node array ->
                   node ->  meta * node_type * bytes   list * node array
   val insert_tree :  tree -> Bytes.t list ->  int64 ->  node
@@ -804,7 +1019,7 @@ end
 module RADIXOp =
 RADIX(struct
 
-  let  has_next l=
+  let  has_next _=
      true
 
 
