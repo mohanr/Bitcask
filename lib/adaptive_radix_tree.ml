@@ -5,14 +5,8 @@ open Types
 
 exception EmptyKeys
 
-module type Iterator =
-sig
-  val has_next: 'n list -> bool
-  (* val next : 'n *)
 
-end
-
- module RADIX ( Iter : Iterator ) = struct
+ module RADIX  = struct
     type 'a radix_node = 'a
     include MakeRadixNode (struct type 'a t = 'a radix_node end)
 
@@ -1049,11 +1043,4 @@ module type RADIXOperator = sig
   val search_after_terminating : node -> Bytes.t list  -> int -> int64 option
 end
 
-module RADIXOp =
-RADIX(struct
-
-  let  has_next _=
-     true
-
-
- end)
+module RADIXOp = RADIX

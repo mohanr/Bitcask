@@ -87,12 +87,6 @@ end
 		Node of  node *
 		int
     and
-	iterator =
-		Tree of  tree *
-		node *
-		int *
-		level list
-    and
 	tree =
 		{root : node; size : int}
     and
