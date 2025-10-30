@@ -104,5 +104,5 @@ module type RADIXOperator = sig
   val add_child : bytes -> meta * node_type * bytes   list * node array ->
                   node ->  meta * node_type * bytes   list * node array
   val insert_tree :  tree -> Bytes.t list ->  int64 ->  node
-  val search_after_terminating : node -> Bytes.t list  -> int -> int64 option
+  val search_with_log_handler : node -> Bytes.t list  -> int -> int64 option
 end

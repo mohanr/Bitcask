@@ -1,6 +1,8 @@
 open Batteries
 open Bigarray
 open Types
+open Effect
+open Effect.Deep
 include Radix_intf
 
 
@@ -1027,9 +1029,35 @@ Printf.printf "]\n%!";)
     )
 
 
+type _ Effect.t +=
+  | Log_keys : node -> unit Effect.t
+
 let search_after_terminating node key level =
-  log_keys node;
+  ignore ( perform (Log_keys node) );
   search node (terminate  key) level
+
+
+let search_with_log_handler  node key level =
+  match_with (fun () ->
+                search node (terminate  key) level )
+  ()
+  {
+    retc =
+      (fun result ->  result);
+    exnc = (fun e -> raise e);
+    effc =
+      (fun (type c) (e : c Effect.t) ->
+        match e with
+        | Log_keys node ->
+            Some
+              (fun (k : (c, _) continuation) ->
+              let () = log_keys node in
+              continue k ()
+              )
+      | _ -> None
+      );
+ }
+
 
 end
 

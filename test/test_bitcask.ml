@@ -643,7 +643,7 @@ let insert_tr (t : tree) key value =
 let%expect_test "Test multiple insertion and search" =
 let tree = empty_tree in
 let tree = insert_tr tree [Bytes.of_string "aa"] 1L in
-(match search_after_terminating tree.root [Bytes.of_string "aa"] 0 with
+(match search_with_log_handler tree.root [Bytes.of_string "aa"] 0 with
 | Some v -> Printf.printf "Found: %Ld\n" v
 | None -> Printf.printf " Not found\n");
   [%expect {|
@@ -693,7 +693,7 @@ let%expect_test "Node4 to Node16 growth" =
   print_node_type tree.root;
 
   List.iter (fun key ->
-    match search_after_terminating tree.root [Bytes.of_string key] 0 with
+    match search_with_log_handler tree.root [Bytes.of_string key] 0 with
     | Some v -> Printf.printf " Found '%s'  %Ld\n" key v
     | None -> Printf.printf " Key '%s' NOT FOUND\n" key
   ) keys;
@@ -945,7 +945,7 @@ let%expect_test "Node16 to Node48 growth" =
   (* Verify random sample *)
   Printf.printf "\nVerifying sample keys:\n";
   List.iter (fun key ->
-    match search_after_terminating tree.root [Bytes.of_string key] 0 with
+    match search_with_log_handler tree.root [Bytes.of_string key] 0 with
     | Some v -> Printf.printf " Found '%s'  %Ld\n" key v
     | None -> Printf.printf " Key '%s' NOT FOUND\n" key
   ) ["a"; "h"; "q"];
@@ -2131,7 +2131,7 @@ let%expect_test "Node48 to Node256 growth" =
 
   Printf.printf "\nVerifying sample keys:\n";
   List.iter (fun key ->
-    match search_after_terminating tree.root [Bytes.of_string key] 0 with
+    match search_with_log_handler tree.root [Bytes.of_string key] 0 with
     | Some v -> Printf.printf " Found '%s' %Ld\n" key v
     | None -> Printf.printf " Key '%s' NOT FOUND\n" key
   ) ["a"; "m"; "z"; "A"; "M"; "W"];
@@ -3276,7 +3276,7 @@ let%expect_test "Test prefixes" =
   (* Verify all multi-byte keys *)
   List.iter (fun key ->
     let key_str = String.concat "" (List.map Bytes.to_string key) in
-    match search_after_terminating tree.root key 0 with
+    match search_with_log_handler tree.root key 0 with
     | Some v -> Printf.printf " Found '%s'  %Ld\n" key_str v
     | None -> Printf.printf " Key '%s' NOT FOUND\n" key_str
   ) keys;
