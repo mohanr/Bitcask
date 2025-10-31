@@ -362,43 +362,29 @@ let count = count_non_empty_children n_48children in
          let (  _,_,  n_256keys,  n_256children) = new_node256() in
          (match meta with
           | Prefix (l, _, i2) ->
-for byte = 0 to 255 do
-       let key_entry = List.nth keys byte in
-       let mapped_val = Bytes.get_uint8 key_entry 0 in
-       if mapped_val <> 0 then (
-         let child_idx = mapped_val - 1 in
-         let child = Array.get children child_idx in
-         match child with
-         | Empty -> ()
-         | _ ->
-             Array.set n_256children byte child
-       )
 
-done;
 
-           (* let rec loop_while i length_of_keys = *)
-           (*  let i_int = Bytes.get_uint8 i 0 in *)
-           (*  let new_n_256keys =  n_256keys in *)
-           (*  if i_int  < length_of_keys - 1  then( *)
-		   (*   let child = find_child_lite n ( Bytes.get_uint8 i 0) in *)
-		   (*   match child with *)
-           (*     | Empty -> loop_while (Bytes.make 1 (Char.chr ( i_int + 1 ))) length_of_keys *)
-           (*     | _ -> *)
-           (*      Printf.printf "Grow node48 %d %d\n" i_int (Array.length n_256children); *)
-           (*      let () = Array.set n_256children i_int child in *)
-           (*      loop_while (Bytes.make 1 (Char.chr ( i_int + 1 ))) length_of_keys; *)
-           (* ) else( *)
-          let count = count_non_empty_children n_256children in
+            let rec loop_while byte =
+              if byte <= 255 then(
+              let key_entry = List.nth keys byte in
+              let mapped_val = Bytes.get_uint8 key_entry 0 in
+              if mapped_val <> 0 then (
+                let child_idx = mapped_val - 1 in
+                let child = Array.get children child_idx in
+                match child with
+                | Empty -> loop_while (byte + 1)
+                | _ ->
+                    Array.set n_256children byte child;
+                    loop_while (byte + 1)
+              ) else
+                    loop_while (byte + 1)
+            ) in loop_while 0;
+            let count = count_non_empty_children n_256children in
 	             (
                  Prefix (l, count, i2),
 		         Node256 node256,
-                 (* new_n_256keys, *)
-
                  n_256keys,
                  n_256children)
-          (*  ) *)
-          (* (\* in *\) *)
-          (* loop_while (Bytes.make 1 (Char.chr 0)) (List.length keys) *)
          )
        | Node256 _ -> n
        | Leaf _ -> n
@@ -1039,7 +1025,7 @@ let search_after_terminating node key level =
 
 let search_with_log_handler  node key level =
   match_with (fun () ->
-                search node (terminate  key) level )
+                search_after_terminating node key level )
   ()
   {
     retc =
