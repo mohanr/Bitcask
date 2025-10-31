@@ -264,98 +264,65 @@ let grow (n : inner_node ) =
 
            (match meta with
             | Prefix (l, i1, i2) ->
-let new_n_16keys = ref [] in
-let new_idx = ref 0 in
-for old_idx = 0 to i1 - 1 do
-  let child = Array.get children old_idx in
-  match child with
-  | Empty -> ()
-  | _ ->
-      Array.set n_16children !new_idx child;
-      new_n_16keys := !new_n_16keys @ [List.nth keys old_idx];
-      new_idx := !new_idx + 1
-done;
+           let new_n_16keys =
+            let rec loop_while old_idx new_idx modified_keys_acc =
+            if old_idx <= i1 - 1  then(
+			 let child = Array.get children old_idx in
+             match child with
+             | Empty ->
+                loop_while (old_idx + 1) new_idx modified_keys_acc
+             | _ ->
+                let () = Array.set n_16children new_idx child in
+                let modified_keys =
+                    modified_keys_acc @ [List.nth keys old_idx] in
 
-  (* new_n_16keys := List.mapi (fun i el -> if i = j_dx then List.nth keys j_dx else el) keys *)
+                loop_while (old_idx + 1) (new_idx + 1) modified_keys
+            )
+            else
+                 modified_keys_acc
+            in
+            loop_while 0 0 [] in
 
 let count = count_non_empty_children n_16children in
-(Prefix (l, count, i2), Node16 node16, !new_n_16keys, n_16children)
+(Prefix (l, count, i2), Node16 node16, new_n_16keys, n_16children)
 
-            (* let new_n_16keys = *)
-            (* let rec loop_while j_dx modified_keys_acc = *)
-            (* if j_dx < i1  then( *)
-			(*  let child = Array.get children j_dx in *)
-            (*  let () = Array.set n_16children j_dx child in *)
-            (*     let modified_keys = *)
-            (*     List.mapi (fun i el -> if i = j_dx then *)
-            (*                              (List.nth keys j_dx) *)
-            (*                              else el) keys in (\* TODO Array is mutable and needed here*\) *)
-            (*     loop_while (j_dx + 1) modified_keys) *)
-            (* else modified_keys_acc *)
-            (* in *)
-            (* loop_while 0 keys in *)
-            (* let count = count_non_empty_children n_16children in *)
-	        (* ( *)
-            (*        Prefix (l, count, i2), *)
-		    (*        Node16 node16, *)
-            (*        new_n_16keys, *)
-            (*        n_16children) *)
-            )
+           )
 
 	   | Node16 _ ->     (*Create a Node48 and set values  *)
          Printf.printf "Grow node16\n";
          let (  _, _,  _,  n_48children) = new_node48() in
          (match meta with
           | Prefix (l, i1, i2) ->
-  let n_48keys = List.init 256 (fun _ -> Bytes.make 1 '\x00') in
-
-     (* Step 2: build a temporary mapping: byte -> idx+1 *)
-     let mapping = ref [] in
-     let next_idx = ref 0 in
-     for old_idx = 0 to i1 - 1 do
-       let child = Array.get children old_idx in
-       match child with
-       | Empty -> ()
-       | _ ->
-           Array.set n_48children !next_idx child;
+          let n_48keys = List.init 256 (fun _ -> Bytes.make 1 '\x00') in
+           let map_48keys =
+            let rec loop_while old_idx new_idx modified_keys_acc =
+            if old_idx <= i1 - 1  then(
+			 let child = Array.get children old_idx in
+             match child with
+             | Empty ->
+                loop_while (old_idx + 1) new_idx modified_keys_acc
+             | _ ->
+                let () = Array.set n_48children new_idx child in
+                let modified_keys =
            let key_byte = Bytes.get_uint8 (List.nth keys old_idx) 0 in
-           mapping := (key_byte, !next_idx + 1) :: !mapping;
-           next_idx := !next_idx + 1
-     done;
+            (key_byte, new_idx + 1) :: modified_keys_acc in
 
-     (* Step 3: update only those bytes that appear in mapping *)
+                loop_while (old_idx + 1) (new_idx + 1) modified_keys
+            )
+            else
+                 modified_keys_acc
+            in
+            loop_while 0 0 [] in
+
      let n_48keys =
        List.mapi (fun byte _ ->
-         match List.assoc_opt byte !mapping with
+         match List.assoc_opt byte map_48keys with
          | Some v -> Bytes.make 1 (Char.chr v)
          | None -> Bytes.make 1 '\x00'
        ) n_48keys
      in
-let count = count_non_empty_children n_48children in
-(Prefix (l, count, i2), Node48 node48, n_48keys, n_48children)
-
-          (*  let index = 0 in *)
-          (*  let new_n_48keys = *)
-          (*  let rec loop_while j_dx idx modified_keys_acc= *)
-          (*   if j_dx < i1  then( *)
-		  (*    let child = Array.get children j_dx in *)
-		  (*    match child with *)
-          (*      | Empty -> loop_while ( j_dx + 1 ) ( index + 1 ) modified_keys_acc *)
-          (*      | _ -> *)
-          (*       let modified_keys = List.mapi (fun i el -> if i = j_dx then *)
-          (*                                (Bytes.make 1 (Char.chr (idx + 1))) *)
-          (*                                else el) keys in (\* TODO Array is mutable and needed here*\) *)
-          (*       let () = Array.set n_48children index child in *)
-          (*       loop_while ( j_dx + 1 ) ( idx + 1 )  modified_keys) *)
-          (*   else modified_keys_acc *)
-          (* in *)
-          (* loop_while 0 index  keys in *)
-          (* let count = count_non_empty_children n_48children in *)
-	      (*        ( *)
-          (*        Prefix (l, count, i2), *)
-		  (*        Node48 node48, *)
-          (*        new_n_48keys, *)
-          (*        n_48children) *)
+       let count = count_non_empty_children n_48children in
+       (Prefix (l, count, i2), Node48 node48, n_48keys, n_48children)
            )
        | Node48 _ ->
          Printf.printf "Grow node48\n";
