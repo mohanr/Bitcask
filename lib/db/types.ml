@@ -3,8 +3,8 @@ open Containers
 module  Blockoffset = struct
     type t = int64
 
-    let compare x x1 =          (*  TODO *)
-      0
+    let compare offset offset1 =
+      Int64.compare offset offset1
 end
 
 module BlockOffsetMap =CCMap.Make(Blockoffset)
@@ -27,6 +27,7 @@ module  Segmentsmap = struct
 end
 
 module SegmentMap = CCMap.Make(Segmentsmap)
+
 type data_store ={
 	dirpath : string;
 	last_offset : int Atomic.t;

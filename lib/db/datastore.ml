@@ -69,7 +69,7 @@ let create_entry_map  (db : data_store ) k v =
     |> EntryMap.add "value_size" (Int64.of_int 8)
     |> EntryMap.add "key"       (Int64.of_int k)
     |> EntryMap.add "value"     (Int64.of_int v) in
-     m
+    m
 
 let  setkey_value_offset_block db key_block_offset path  =
 

@@ -11,6 +11,7 @@ open Mtime_clock
 open Marshal
 open Effect
 open Effect.Deep
+open Bin_prot.Std
 
 module type WalWriter =
 sig
@@ -22,22 +23,22 @@ module Entry  (Wal : WalWriter) = struct
 
 type entry = {
   checksum : int32;
-	key      : Bytes.t;
-	value    : Bytes.t ;
-	deleted  : Bytes.t;
+	key      : string;
+	value    : string ;
+	deleted  : string;
 	offset   :   int64;
 	size  :  int64;
 	tstamp  :    int64;
 	keysize  :   int64;
 	valuesize :  int64;
 }
-[@@deriving show]
+[@@deriving bin_io]
 
 let calculate_sizes entry =
   Fmt.pr "CRC :[ %d ]\n"  (Bytes.length (int32tobytes entry.checksum 8));
-  Fmt.pr "Key :[ %d ]\n" (Bytes.length entry.key);
-  Fmt.pr "Value :[ %d ]\n" (Bytes.length entry.value );
-  Fmt.pr "Deleted flag :[ %d ]\n" (Bytes.length entry.deleted);
+  Fmt.pr "Key :[ %d ]\n" (String.length entry.key);
+  Fmt.pr "Value :[ %d ]\n" (String.length entry.value );
+  Fmt.pr "Deleted flag :[ %d ]\n" (String.length entry.deleted);
   Fmt.pr "Offset :[ %d ]\n"  (Bytes.length (int64tobytes entry.offset 8));
   Fmt.pr "Size :[ %d ]\n" (Bytes.length (int64tobytes entry.size 8));
   Fmt.pr "Timestamp :[ %d ]\n" (Bytes.length (int64tobytes entry.tstamp 8));
@@ -45,8 +46,8 @@ let calculate_sizes entry =
   Fmt.pr "Value Size :[ %d ]\n" (Bytes.length (int64tobytes entry.valuesize 8));
 module  Entrykeyvalue = struct
   type t = string
-  let compare x x1 =          (*  TODO *)
-    0
+  let compare x x1 =
+    String.compare x x1
 end
 
 let read_entry file_path env = Wal.read() file_path env
@@ -63,23 +64,27 @@ type _ Effect.t +=
   | Check_sizes : entry -> entry Effect.t
 
 let compose_entry map =
-  let entry_bytes =
-    Bytes.cat
-    (Bytes.cat
-      (Bytes.cat (Bytes.cat (int64tobytes (EntryMap.find "keysize" map) 8)
-                            (int64tobytes (EntryMap.find "valuesize" map) 8))
-                 (int64tobytes (EntryMap.find "tstamp" map) 8))
-      (int64tobytes (EntryMap.find "key" map) 8))
-   (int64tobytes (EntryMap.find "value" map) 8)
-  in
+  let tstamp  =   current_time_ns () in
+  let buffer = Buffer.create 40 in
+    Buffer.add_int64_ne buffer
+      (EntryMap.find "key_size" map);
+    Buffer.add_int64_ne buffer
+      (EntryMap.find "value_size" map);
+    Buffer.add_int64_ne buffer
+      tstamp ;
+    Buffer.add_int64_ne buffer
+       (EntryMap.find "key" map);
+    Buffer.add_int64_ne buffer
+        (EntryMap.find "value" map);
   let new_entry = {
-    checksum = Crc32.to_int32 (Crc32.digest_bytes entry_bytes 0 (Bytes.length entry_bytes) Crc32.default)  ;
-		key = int64tobytes (EntryMap.find "key" map ) 8;
-		value = int64tobytes(EntryMap.find "value" map) 8 ;
-	  deleted  = int64tobytes(EntryMap.find "deleted" map) 8 ;
+    checksum = Crc32.to_int32 (Crc32.digest_bytes (Buffer.to_bytes buffer) 0
+                    (Bytes.length (Buffer.to_bytes buffer)) Crc32.default)  ;
+		key = Int64.to_string( EntryMap.find "key" map);
+		value = Int64.to_string(EntryMap.find "value" map) ;
+	  deleted  = Int64.to_string(EntryMap.find "deleted" map) ;
     offset   = EntryMap.find "offset" map ;
     size  =  Int64.of_int (5 + 1 + 10 + 10 + 10); (*  TODO The values are not validated*)
-    tstamp  =   current_time_ns ();
+    tstamp  =   tstamp;
     keysize  =  EntryMap.find "key_size" map ;
     valuesize = EntryMap.find "value_size" map ;
 	} in
