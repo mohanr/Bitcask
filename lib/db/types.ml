@@ -1,4 +1,17 @@
 open Containers
+open Bin_prot.Std
+
+type entry_map_value =
+  |IntValue of int64
+  |ListValue of string list
+[@@deriving bin_io]
+module  Entrykeyvalue = struct
+  type t = string
+  let compare x x1 =
+    String.compare x x1
+end
+module EntryMap = CCMap.Make(Entrykeyvalue)
+
 
 module  Blockoffset = struct
     type t = int64

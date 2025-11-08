@@ -12,6 +12,7 @@ open Marshal
 open Effect
 open Effect.Deep
 open Bin_prot.Std
+open Types
 
 module type WalWriter =
 sig
@@ -21,9 +22,11 @@ end
 
 module Entry  (Wal : WalWriter) = struct
 
+let read_entry file_path env = Wal.read file_path env
+let write  data env = Wal.write  data env
 type entry = {
   checksum : int32;
-	key      : string;
+	key      : string list;
 	value    : string ;
 	deleted  : string;
 	offset   :   int64;
@@ -34,26 +37,21 @@ type entry = {
 }
 [@@deriving bin_io]
 
-let calculate_sizes entry =
+let calculate_sizes entry map =
   Fmt.pr "CRC :[ %d ]\n"  (Bytes.length (int32tobytes entry.checksum 8));
-  Fmt.pr "Key :[ %d ]\n" (String.length entry.key);
+  let k = match (EntryMap.find "key" map) with
+                          | ListValue l -> (Int.mul (List.length l) 8)
+                          | IntValue _ -> 0
+                          in
+  Fmt.pr "Key :[ %d ]\n" k;
   Fmt.pr "Value :[ %d ]\n" (String.length entry.value );
   Fmt.pr "Deleted flag :[ %d ]\n" (String.length entry.deleted);
   Fmt.pr "Offset :[ %d ]\n"  (Bytes.length (int64tobytes entry.offset 8));
   Fmt.pr "Size :[ %d ]\n" (Bytes.length (int64tobytes entry.size 8));
   Fmt.pr "Timestamp :[ %d ]\n" (Bytes.length (int64tobytes entry.tstamp 8));
   Fmt.pr "Key Size :[ %d ]\n" (Bytes.length (int64tobytes entry.keysize 4));
-  Fmt.pr "Value Size :[ %d ]\n" (Bytes.length (int64tobytes entry.valuesize 8));
-module  Entrykeyvalue = struct
-  type t = string
-  let compare x x1 =
-    String.compare x x1
-end
+  Fmt.pr "Value Size :[ %d ]\n" (Bytes.length (int64tobytes entry.valuesize 8))
 
-let read_entry file_path env = Wal.read() file_path env
-let write  data env = Wal.write  data env
-
-module EntryMap = CCMap.Make(Entrykeyvalue)
 
 let current_time_ns () =
     let time = Mtime_clock.now () in
@@ -63,30 +61,40 @@ let current_time_ns () =
 type _ Effect.t +=
   | Check_sizes : entry -> entry Effect.t
 
+let match_value map key =
+          match (EntryMap.find key map) with
+               | ListValue _ -> 0L
+               | IntValue i -> i
+
 let compose_entry map =
   let tstamp  =   current_time_ns () in
   let buffer = Buffer.create 40 in
     Buffer.add_int64_ne buffer
-      (EntryMap.find "key_size" map);
+      (match_value map "key_size");
     Buffer.add_int64_ne buffer
-      (EntryMap.find "value_size" map);
+      (match_value map "value_size");
     Buffer.add_int64_ne buffer
       tstamp ;
+    Buffer.add_bytes buffer
+          (match (EntryMap.find "key" map) with
+               | ListValue l -> Bytes.of_string ( String.concat  String.empty l)
+               | IntValue _ -> Bytes.of_string String.empty);
     Buffer.add_int64_ne buffer
-       (EntryMap.find "key" map);
-    Buffer.add_int64_ne buffer
-        (EntryMap.find "value" map);
+        (match_value map "value");
   let new_entry = {
-    checksum = Crc32.to_int32 (Crc32.digest_bytes (Buffer.to_bytes buffer) 0
+    checksum = Crc32.to_int32 (Crc32.digest_bytes
+                                 (Buffer.to_bytes buffer) 0
                     (Bytes.length (Buffer.to_bytes buffer)) Crc32.default)  ;
-		key = Int64.to_string( EntryMap.find "key" map);
-		value = Int64.to_string(EntryMap.find "value" map) ;
-	  deleted  = Int64.to_string(EntryMap.find "deleted" map) ;
-    offset   = EntryMap.find "offset" map ;
+		key =  (match (EntryMap.find "key" map) with
+                 | ListValue l ->  l
+                 | IntValue _ -> []);
+		value = Int64.to_string(match_value map "value") ;
+	  deleted  = Int64.to_string(match_value map "deleted") ;
+    offset   = match_value map "offset" ;
     size  =  Int64.of_int (5 + 1 + 10 + 10 + 10); (*  TODO The values are not validated*)
     tstamp  =   tstamp;
-    keysize  =  EntryMap.find "key_size" map ;
-    valuesize = EntryMap.find "value_size" map ;
+    keysize  =  match_value map "key_size" ;
+    valuesize = match_value map "value_size" ;
 	} in
   ignore ( perform (Check_sizes new_entry) );
   new_entry
@@ -94,7 +102,8 @@ let compose_entry map =
 let create_entry map env =
   let new_entry = compose_entry map
     in
-    Wal.write (Marshal.to_bytes new_entry [])  env
+    let buf = Bin_prot.Utils.bin_dump ~header:false bin_writer_entry new_entry in
+    Wal.write (Bigstring.to_bytes buf)  env
 
 
 let entry_handler  map =
@@ -110,7 +119,7 @@ let entry_handler  map =
         | Check_sizes entry ->
             Some
               (fun (k : (c, _) continuation) ->
-              let result = calculate_sizes entry in
+              let result = calculate_sizes entry map in (*  Remove 'map' parameter*)
               continue k entry
               )
       | _ -> None
