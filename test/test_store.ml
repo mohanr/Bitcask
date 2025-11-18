@@ -107,7 +107,7 @@ module DatabaseOp = Bitcask__Datastore.DatabaseOp
 let%expect_test "Batch commit and index"=
 Eio_main.run @@ fun env ->
   let new_batch = newbatch (module  DatabaseOp) in
-  let () =  batch new_batch (Bytes.make 1 (Char.chr 1))  (Bytes.make 1 (Char.chr 2)) in
+  let () =  batch new_batch (Bytes.make 1 (Char.chr 1) )  "2" in
   commit new_batch env;
   [%expect {|
      node.step is set to 0
