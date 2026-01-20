@@ -1,8 +1,6 @@
 open Containers
 open Eio.Std
 open Bitcask__Wal_store.DataEntryOp
-open Bitcask__Adaptive_radix_tree
-open CCMap
 open Segment.Segment
 open Types
 
@@ -10,8 +8,9 @@ open Types
 module type WalOperator =
 sig
   val create_entry_map : data_store -> string list -> int -> entry_map_value EntryMap.t
-  val get_last_offset : data_store ->int
-  val set_last_offset : data_store -> int -> unit
+  (* val get_last_offset : data_store ->int *)
+  (* val set_last_offset : data_store -> int -> unit *)
+
 end
 
 module Database (Wal : WalOperator)  = struct
@@ -19,7 +18,6 @@ module Database (Wal : WalOperator)  = struct
 
 let create_entry_map = Wal.create_entry_map
 
-let deleted_flag = 98
 
 
 type data_store = Types.data_store
@@ -28,7 +26,7 @@ type data_store = Types.data_store
 let create_data_store dirpath  =
   let segment_map =
     SegmentMap.empty in
-  let m =
+    let _m =
     SegmentMap.add dirpath (create_new_segment (* key_block_offset *)) in
      {
           dirpath;
@@ -45,7 +43,7 @@ type data_store = Types.data_store
 
 let deleted_flag = 98
 
-let open_wal  =
+let _open_wal  =
 	{
 	  writes_in_flight  = Inflight_wal_vector.create();
 	  existing_segments  = Write_Ahead_Map.empty;
@@ -59,7 +57,7 @@ let get_last_offset (db : data_store) =
 
 
 
-let set_last_offset (db : data_store ) offset =
+let _set_last_offset (db : data_store ) offset =
   Atomic.set db.last_offset offset
 
 let create_entry_map  (db : data_store ) k v =
@@ -73,7 +71,7 @@ let create_entry_map  (db : data_store ) k v =
     |> EntryMap.add "value"     (IntValue(Int64.of_int v)) in
     m
 
-let  setkey_value_offset_block db key_block_offset path  =
+let  _setkey_value_offset_block db key_block_offset path  =
 
   (*  TODO Exception handler*)
 
@@ -83,7 +81,7 @@ let  setkey_value_offset_block db key_block_offset path  =
   | None ->
 		set_segment db key_block_offset.path create_new_segment
 
-   let store_entry db k v =
+   let _store_entry db k v =
      let m = create_entry_map db k v in
      Eio_main.run @@ fun env ->
       Eio.Switch.run @@ fun sw ->

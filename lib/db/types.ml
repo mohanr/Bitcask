@@ -50,8 +50,8 @@ type data_store ={
 
 module  Walmap = struct
   type t = int32
-  let compare segment_id1 segment_id1 =
-    Int32.compare segment_id1 segment_id1
+  let compare segment_id2 segment_id1 =
+    Int32.compare segment_id2 segment_id1
 end
 
 module Write_Ahead_Map = CCMap.Make(Walmap)

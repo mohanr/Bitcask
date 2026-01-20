@@ -5,8 +5,8 @@
  ))
 (library
  (name bitcask)
- (preprocess (pps ppx_deriving.show))
- (libraries hex fmt timedesc checkseum base containers batteries
+ (preprocess (pps ppx_deriving.show ppx_bin_prot))
+ (libraries  bin_prot bigstring hex fmt timedesc checkseum base containers batteries
             logs logs.fmt  eio_main )
  ; (modules types utils segment snowflake wal_store datastore adaptive_radix_tree)
 

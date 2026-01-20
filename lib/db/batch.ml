@@ -1,12 +1,9 @@
 open Bigarray
 open Bitcask__Datastore
-open Bitcask__Wal_store.DataEntryOp
 open Bitcask__Snowflake
 open Containers
 open Bitcask__Murmurhash
-open Eio.Std
 open Eio
-open Utils
 open Bin_prot.Std
 open Bigstring
 
@@ -34,6 +31,7 @@ module InflightMap = CCMap.Make(Inflightmap)
 
 type batch = {
 	db        :       (module DATASTOREOperator);
+	batch_id      :   int64;
 	writes_in_flight  : wal_record Inflight_vector.vector;
 	mutable writes_in_flight_fast_access : wal_record InflightMap.t;
 	mu        :  Eio.Mutex.t;
@@ -42,11 +40,12 @@ type batch = {
 }
 
  (* A new batch *)
-let   newbatch  (module M : DATASTOREOperator) =
- let node = create_snowflake_node (Int64.of_int 0) in
- let id = generate node in
+let   newbatch (module M : DATASTOREOperator) =
+    let node = create_snowflake_node (Int64.of_int 0) in
+    let id = generate node in
     {
 	db        =       (module M : DATASTOREOperator);
+	batch_id      =   (match id with | Ok v -> v | Error _ -> failwith "Unable to get snowflake id");
 	writes_in_flight  = Inflight_vector.create();
 	writes_in_flight_fast_access = InflightMap.empty;
     mu        =   Eio.Mutex.create();
@@ -67,6 +66,8 @@ let  store_inflight_writes b key wal_record =
 
 let batch b key value =
 
+   let node = create_snowflake_node (Int64.of_int 0) in
+   let id = generate node in
    Eio.Switch.run @@ fun sw ->
    Fiber.fork ~sw (fun () ->
    Eio.Mutex.use_rw ~protect:true b.mu (fun () ->
@@ -74,8 +75,6 @@ let batch b key value =
 	match (check_for_inflight_writes b key) with
    | Some _  -> ()
    | None  ->
-        let node = create_snowflake_node (Int64.of_int 0) in
-        let id = generate node in
         let wal_record =
          {
             key      = Bytes.to_string key;
@@ -87,7 +86,7 @@ let batch b key value =
    )
    )
 
-let  commit b env =
+let  commit b _env =
 
    Eio.Switch.run @@ fun sw ->
    Fiber.fork ~sw (fun () ->
@@ -100,14 +99,14 @@ let  commit b env =
   let any_wal_record =  CCVector.get b.writes_in_flight 0 in
   let batch_id = any_wal_record.batch_id in
   let buffer = Buffer.create 200 in
-  let write_to_stdout sink bytes = (*  TODO Why do we need a sink ?*)
+  let write_to_sink sink bytes = (*  TODO Why do we need a sink ?*)
     Eio.Buf_write.with_flow sink @@ fun bw ->
     Eio.Buf_write.bytes bw bytes
   in
    let _ = CCVector.fold ( fun buffer x ->
 
        let buf = Bin_prot.Utils.bin_dump ~header:false bin_writer_wal_record x in
-       let _ = write_to_stdout (Eio.Flow.buffer_sink buffer) (to_bytes buf) in
+       let _ = write_to_sink (Eio.Flow.buffer_sink buffer) (to_bytes buf) in
        buffer
        ) buffer b.writes_in_flight
   in
@@ -119,7 +118,7 @@ let  commit b env =
                                        wal_type = WalRecordEnd
 
                                      } ) in
-       write_to_stdout (Eio.Flow.buffer_sink buffer) (to_bytes buf);
+       write_to_sink (Eio.Flow.buffer_sink buffer) (to_bytes buf);
        (* Write to WAL *)
        (* write *)
        (*   (Buffer.to_bytes buffer) env *)

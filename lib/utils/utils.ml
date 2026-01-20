@@ -1,4 +1,3 @@
-open Bytes
 open Int64
 
 module Utils = struct

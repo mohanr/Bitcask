@@ -71,7 +71,7 @@ let%expect_test "Test Set and Get keys"=
     Timestamp :[ 8 ]
     Key Size :[ 4 ]
     Value Size :[ 8 ]
-    Crc 3464945127
+    Crc 2560937276
     Key M
     Value 4
     |}]
@@ -110,18 +110,8 @@ Eio_main.run @@ fun env ->
   let () =  batch new_batch (Bytes.make 1 (Char.chr 1) )  "2" in
   commit new_batch env;
   [%expect {|
+    Generating Snowflake IdGenerating Snowflake Id node.step is set to 0
+     node.time is set from 0 to 480077114
      node.step is set to 0
-     node.time is set from 0 to 473755966
-     node.step is set to 0
-     node.time is set from 0 to 473755966
-    75 bytes written
+     node.time is set from 0 to 480077114
     |}]
-
-let int64tobytes v  l : Bytes.t =
-	let b   = Bytes.create l in
-    for i = 0 to l - 1 do
-        let f = 8 * i in
-        let byte = Int64.to_int Int64.(logand (shift_right_logical v  f) 0xffL) in
-        Bytes.set b i (Char.chr byte)
-    done;
-    b

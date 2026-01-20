@@ -1,18 +1,13 @@
 open Base
 open Checkseum
 open Stdlib
-open Eio.Std
-open Mtime_clock
 open Containers
-open Utils
-open Hex
-open Utils
-open Mtime_clock
-open Marshal
+open Utils.Utils
 open Effect
 open Effect.Deep
 open Bin_prot.Std
 open Types
+open Eio.Std
 
 module type WalWriter =
 sig
@@ -119,7 +114,7 @@ let entry_handler  map =
         | Check_sizes entry ->
             Some
               (fun (k : (c, _) continuation) ->
-              let result = calculate_sizes entry map in (*  Remove 'map' parameter*)
+              let _= calculate_sizes entry map in (*  Remove 'map' parameter*)
               continue k entry
               )
       | _ -> None
@@ -130,7 +125,6 @@ let entry_handler  map =
 end
 
 module WalWriter = struct
-
 
 let write ?(file_path="/Users/anu/Documents/rays/Bitcask/bitcask"
 

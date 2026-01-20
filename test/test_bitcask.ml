@@ -631,10 +631,7 @@ let%expect_test "Test insertion" =
           )
 	     | Leaf _  -> Printf.printf "Leaf"
 	     | Empty   -> Printf.printf "Empty");
-   [%expect {|
-     Leafterminate INPUT: [68,65,31,31,6F]
-     terminate OUTPUT: [68,65,31,31,6F,00]
-     |}]
+   [%expect {| Leaf |}]
 
 
 let insert_tr (t : tree) key value =
@@ -646,13 +643,7 @@ let tree = insert_tr tree [Bytes.of_string "aa"] 1L in
 (match search_with_log_handler tree.root [Bytes.of_string "aa"] 0 with
 | Some v -> Printf.printf "Found: %Ld\n" v
 | None -> Printf.printf " Not found\n");
-  [%expect {|
-    Searching leavesSearch key a compared with a Found: 1
-    terminate INPUT: [61]
-    terminate OUTPUT: [61,00]
-    terminate INPUT: [61]
-    terminate OUTPUT: [61,00]
-    |}]
+  [%expect {| Searching leavesSearch key a compared with a Found: 1 |}]
 
 let print_node_type  node =
 (* After inserting 'e', before searching *)
@@ -700,10 +691,6 @@ let%expect_test "Node4 to Node16 growth" =
   [%expect {|
     Inserting key: a
     Inserting key: b
-    terminate INPUT: [61]
-    terminate OUTPUT: [61,00]
-    terminate INPUT: [62]
-    terminate OUTPUT: [62,00]
     INSERT: Leaf case - existing key=a , new key=b 
     INSERT: Splitting leaf, creating Node4
     DEBUG: level=0, limit=0, new_level will be=0
@@ -747,8 +734,6 @@ let%expect_test "Node4 to Node16 growth" =
     count_non_empty_children: found 2 non-empty in array of length 4
     add_child returned: updated_keys=[61,62] nonempty_children=2
     Inserting key: c
-    terminate INPUT: [63]
-    terminate OUTPUT: [63,00]
     find_child Node4/16: idx=255, array_length=4
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'c' (first byte=63)
@@ -766,8 +751,6 @@ let%expect_test "Node4 to Node16 growth" =
     count_non_empty_children: found 3 non-empty in array of length 4
     add_child returned: updated_keys=[61,62,63] nonempty_children=3
     [  c = a ][  c = b ]Inserting key: d
-    terminate INPUT: [64]
-    terminate OUTPUT: [64,00]
     find_child Node4/16: idx=255, array_length=4
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'd' (first byte=64)
@@ -786,8 +769,6 @@ let%expect_test "Node4 to Node16 growth" =
     count_non_empty_children: found 4 non-empty in array of length 4
     add_child returned: updated_keys=[61,62,63,64] nonempty_children=4
     [  d = a ][  d = b ][  d = c ]Inserting key: e
-    terminate INPUT: [65]
-    terminate OUTPUT: [65,00]
     find_child Node4/16: idx=255, array_length=4
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'e' (first byte=65)
@@ -805,10 +786,7 @@ let%expect_test "Node4 to Node16 growth" =
     Added child at 4 -> Leaf_node
     count_non_empty_children: found 5 non-empty in array of length 16
     add_child returned: updated_keys=[61,62,63,64,65] nonempty_children=5
-    [  e = a ][  e = b ][  e = c ][  e = d ]Computed index = ÿ for key byte c
-    Computed index = ÿ for key byte d
-    Computed index = ÿ for key byte e
-    Root node type after 5 insertions: Searching in Node keys: [BYTE representation :[ a]
+    [  e = a ][  e = b ][  e = c ][  e = d ]Root node type after 5 insertions: Searching in Node keys: [BYTE representation :[ a]
     BYTE representation :[ b]
     BYTE representation :[ c]
     BYTE representation :[ d]
@@ -820,8 +798,7 @@ let%expect_test "Node4 to Node16 growth" =
      [ a]
     [  ]
     Level 0
-    [  a = a ]Computed index =   for key byte a
-    search: find_child returned: Leaf
+    [  a = a ]search: find_child returned: Leaf
     Search key a compared with a  Found 'a'  97
     Searching in Node keys: [BYTE representation :[ a]
     BYTE representation :[ b]
@@ -835,8 +812,7 @@ let%expect_test "Node4 to Node16 growth" =
      [ b]
     [  ]
     Level 0
-    [  b = a ][  b = b ]Computed index =  for key byte b
-    search: find_child returned: Leaf
+    [  b = a ][  b = b ]search: find_child returned: Leaf
     Search key b compared with b  Found 'b'  98
     Searching in Node keys: [BYTE representation :[ a]
     BYTE representation :[ b]
@@ -850,8 +826,7 @@ let%expect_test "Node4 to Node16 growth" =
      [ c]
     [  ]
     Level 0
-    [  c = a ][  c = b ][  c = c ]Computed index =  for key byte c
-    search: find_child returned: Leaf
+    [  c = a ][  c = b ][  c = c ]search: find_child returned: Leaf
     Search key c compared with c  Found 'c'  99
     Searching in Node keys: [BYTE representation :[ a]
     BYTE representation :[ b]
@@ -865,8 +840,7 @@ let%expect_test "Node4 to Node16 growth" =
      [ d]
     [  ]
     Level 0
-    [  d = a ][  d = b ][  d = c ][  d = d ]Computed index =  for key byte d
-    search: find_child returned: Leaf
+    [  d = a ][  d = b ][  d = c ][  d = d ]search: find_child returned: Leaf
     Search key d compared with d  Found 'd'  100
     Searching in Node keys: [BYTE representation :[ a]
     BYTE representation :[ b]
@@ -880,8 +854,7 @@ let%expect_test "Node4 to Node16 growth" =
      [ e]
     [  ]
     Level 0
-    [  e = a ][  e = b ][  e = c ][  e = d ][  e = e ]Computed index =  for key byte e
-    search: find_child returned: Leaf
+    [  e = a ][  e = b ][  e = c ][  e = d ][  e = e ]search: find_child returned: Leaf
     Search key e compared with e  Found 'e'  101
 
     === DEBUG: Children array contents ===
@@ -901,28 +874,18 @@ let%expect_test "Node4 to Node16 growth" =
     children[13]: Empty
     children[14]: Empty
     children[15]: Empty
-    terminate INPUT: [61]
-    terminate OUTPUT: [61,00]
     find_child Node4/16: idx=0, array_length=16
     find_child Node4/16: returning children[0]
       -> was Leaf
-    terminate INPUT: [62]
-    terminate OUTPUT: [62,00]
     find_child Node4/16: idx=1, array_length=16
     find_child Node4/16: returning children[1]
       -> was Leaf
-    terminate INPUT: [63]
-    terminate OUTPUT: [63,00]
     find_child Node4/16: idx=2, array_length=16
     find_child Node4/16: returning children[2]
       -> was Leaf
-    terminate INPUT: [64]
-    terminate OUTPUT: [64,00]
     find_child Node4/16: idx=3, array_length=16
     find_child Node4/16: returning children[3]
       -> was Leaf
-    terminate INPUT: [65]
-    terminate OUTPUT: [65,00]
     find_child Node4/16: idx=4, array_length=16
     find_child Node4/16: returning children[4]
       -> was Leaf
@@ -950,10 +913,6 @@ let%expect_test "Node16 to Node48 growth" =
     | None -> Printf.printf " Key '%s' NOT FOUND\n" key
   ) ["a"; "h"; "q"];
   [%expect {|
-    terminate INPUT: [61]
-    terminate OUTPUT: [61,00]
-    terminate INPUT: [62]
-    terminate OUTPUT: [62,00]
     INSERT: Leaf case - existing key=a , new key=b 
     INSERT: Splitting leaf, creating Node4
     DEBUG: level=0, limit=0, new_level will be=0
@@ -996,8 +955,6 @@ let%expect_test "Node16 to Node48 growth" =
     Added child at 1 -> 1
     count_non_empty_children: found 2 non-empty in array of length 4
     add_child returned: updated_keys=[61,62] nonempty_children=2
-    terminate INPUT: [63]
-    terminate OUTPUT: [63,00]
     find_child Node4/16: idx=255, array_length=4
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'c' (first byte=63)
@@ -1014,8 +971,6 @@ let%expect_test "Node16 to Node48 growth" =
     Added child at 2 -> 2
     count_non_empty_children: found 3 non-empty in array of length 4
     add_child returned: updated_keys=[61,62,63] nonempty_children=3
-    terminate INPUT: [64]
-    terminate OUTPUT: [64,00]
     find_child Node4/16: idx=255, array_length=4
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'd' (first byte=64)
@@ -1033,8 +988,6 @@ let%expect_test "Node16 to Node48 growth" =
     Added child at 3 -> 3
     count_non_empty_children: found 4 non-empty in array of length 4
     add_child returned: updated_keys=[61,62,63,64] nonempty_children=4
-    terminate INPUT: [65]
-    terminate OUTPUT: [65,00]
     find_child Node4/16: idx=255, array_length=4
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'e' (first byte=65)
@@ -1052,8 +1005,6 @@ let%expect_test "Node16 to Node48 growth" =
     Added child at 4 -> Leaf_node
     count_non_empty_children: found 5 non-empty in array of length 16
     add_child returned: updated_keys=[61,62,63,64,65] nonempty_children=5
-    terminate INPUT: [66]
-    terminate OUTPUT: [66,00]
     find_child Node4/16: idx=255, array_length=16
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'f' (first byte=66)
@@ -1066,8 +1017,6 @@ let%expect_test "Node16 to Node48 growth" =
     Added child at 5 -> Leaf_node
     count_non_empty_children: found 6 non-empty in array of length 16
     add_child returned: updated_keys=[61,62,63,64,65,66] nonempty_children=6
-    terminate INPUT: [67]
-    terminate OUTPUT: [67,00]
     find_child Node4/16: idx=255, array_length=16
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'g' (first byte=67)
@@ -1080,8 +1029,6 @@ let%expect_test "Node16 to Node48 growth" =
     Added child at 6 -> Leaf_node
     count_non_empty_children: found 7 non-empty in array of length 16
     add_child returned: updated_keys=[61,62,63,64,65,66,67] nonempty_children=7
-    terminate INPUT: [68]
-    terminate OUTPUT: [68,00]
     find_child Node4/16: idx=255, array_length=16
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'h' (first byte=68)
@@ -1094,8 +1041,6 @@ let%expect_test "Node16 to Node48 growth" =
     Added child at 7 -> Leaf_node
     count_non_empty_children: found 8 non-empty in array of length 16
     add_child returned: updated_keys=[61,62,63,64,65,66,67,68] nonempty_children=8
-    terminate INPUT: [69]
-    terminate OUTPUT: [69,00]
     find_child Node4/16: idx=255, array_length=16
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'i' (first byte=69)
@@ -1108,8 +1053,6 @@ let%expect_test "Node16 to Node48 growth" =
     Added child at 8 -> Leaf_node
     count_non_empty_children: found 9 non-empty in array of length 16
     add_child returned: updated_keys=[61,62,63,64,65,66,67,68,69] nonempty_children=9
-    terminate INPUT: [6A]
-    terminate OUTPUT: [6A,00]
     find_child Node4/16: idx=255, array_length=16
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'j' (first byte=6A)
@@ -1122,8 +1065,6 @@ let%expect_test "Node16 to Node48 growth" =
     Added child at 9 -> Leaf_node
     count_non_empty_children: found 10 non-empty in array of length 16
     add_child returned: updated_keys=[61,62,63,64,65,66,67,68,69,6A] nonempty_children=10
-    terminate INPUT: [6B]
-    terminate OUTPUT: [6B,00]
     find_child Node4/16: idx=255, array_length=16
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'k' (first byte=6B)
@@ -1136,8 +1077,6 @@ let%expect_test "Node16 to Node48 growth" =
     Added child at 10 -> Leaf_node
     count_non_empty_children: found 11 non-empty in array of length 16
     add_child returned: updated_keys=[61,62,63,64,65,66,67,68,69,6A,6B] nonempty_children=11
-    terminate INPUT: [6C]
-    terminate OUTPUT: [6C,00]
     find_child Node4/16: idx=255, array_length=16
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'l' (first byte=6C)
@@ -1150,8 +1089,6 @@ let%expect_test "Node16 to Node48 growth" =
     Added child at 11 -> Leaf_node
     count_non_empty_children: found 12 non-empty in array of length 16
     add_child returned: updated_keys=[61,62,63,64,65,66,67,68,69,6A,6B,6C] nonempty_children=12
-    terminate INPUT: [6D]
-    terminate OUTPUT: [6D,00]
     find_child Node4/16: idx=255, array_length=16
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'm' (first byte=6D)
@@ -1164,8 +1101,6 @@ let%expect_test "Node16 to Node48 growth" =
     Added child at 12 -> Leaf_node
     count_non_empty_children: found 13 non-empty in array of length 16
     add_child returned: updated_keys=[61,62,63,64,65,66,67,68,69,6A,6B,6C,6D] nonempty_children=13
-    terminate INPUT: [6E]
-    terminate OUTPUT: [6E,00]
     find_child Node4/16: idx=255, array_length=16
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'n' (first byte=6E)
@@ -1178,8 +1113,6 @@ let%expect_test "Node16 to Node48 growth" =
     Added child at 13 -> Leaf_node
     count_non_empty_children: found 14 non-empty in array of length 16
     add_child returned: updated_keys=[61,62,63,64,65,66,67,68,69,6A,6B,6C,6D,6E] nonempty_children=14
-    terminate INPUT: [6F]
-    terminate OUTPUT: [6F,00]
     find_child Node4/16: idx=255, array_length=16
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'o' (first byte=6F)
@@ -1192,8 +1125,6 @@ let%expect_test "Node16 to Node48 growth" =
     Added child at 14 -> Leaf_node
     count_non_empty_children: found 15 non-empty in array of length 16
     add_child returned: updated_keys=[61,62,63,64,65,66,67,68,69,6A,6B,6C,6D,6E,6F] nonempty_children=15
-    terminate INPUT: [70]
-    terminate OUTPUT: [70,00]
     find_child Node4/16: idx=255, array_length=16
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'p' (first byte=70)
@@ -1206,8 +1137,6 @@ let%expect_test "Node16 to Node48 growth" =
     Added child at 15 -> Leaf_node
     count_non_empty_children: found 16 non-empty in array of length 16
     add_child returned: updated_keys=[61,62,63,64,65,66,67,68,69,6A,6B,6C,6D,6E,6F,70] nonempty_children=16
-    terminate INPUT: [71]
-    terminate OUTPUT: [71,00]
     find_child Node4/16: idx=255, array_length=16
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'q' (first byte=71)
@@ -1225,22 +1154,7 @@ let%expect_test "Node16 to Node48 growth" =
     Added child at idx=16 for byte=113
     count_non_empty_children: found 17 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=17
-    [  c = a ][  c = b ][  d = a ][  d = b ][  d = c ][  e = a ][  e = b ][  e = c ][  e = d ]Computed index = ÿ for key byte c
-    Computed index = ÿ for key byte d
-    Computed index = ÿ for key byte e
-    [  f = a ][  f = b ][  f = c ][  f = d ][  f = e ]Computed index = ÿ for key byte f
-    [  g = a ][  g = b ][  g = c ][  g = d ][  g = e ][  g = f ]Computed index = ÿ for key byte g
-    [  h = a ][  h = b ][  h = c ][  h = d ][  h = e ][  h = f ][  h = g ]Computed index = ÿ for key byte h
-    [  i = a ][  i = b ][  i = c ][  i = d ][  i = e ][  i = f ][  i = g ][  i = h ]Computed index = ÿ for key byte i
-    [  j = a ][  j = b ][  j = c ][  j = d ][  j = e ][  j = f ][  j = g ][  j = h ][  j = i ]Computed index = ÿ for key byte j
-    [  k = a ][  k = b ][  k = c ][  k = d ][  k = e ][  k = f ][  k = g ][  k = h ][  k = i ][  k = j ]Computed index = ÿ for key byte k
-    [  l = a ][  l = b ][  l = c ][  l = d ][  l = e ][  l = f ][  l = g ][  l = h ][  l = i ][  l = j ][  l = k ]Computed index = ÿ for key byte l
-    [  m = a ][  m = b ][  m = c ][  m = d ][  m = e ][  m = f ][  m = g ][  m = h ][  m = i ][  m = j ][  m = k ][  m = l ]Computed index = ÿ for key byte m
-    [  n = a ][  n = b ][  n = c ][  n = d ][  n = e ][  n = f ][  n = g ][  n = h ][  n = i ][  n = j ][  n = k ][  n = l ][  n = m ]Computed index = ÿ for key byte n
-    [  o = a ][  o = b ][  o = c ][  o = d ][  o = e ][  o = f ][  o = g ][  o = h ][  o = i ][  o = j ][  o = k ][  o = l ][  o = m ][  o = n ]Computed index = ÿ for key byte o
-    [  p = a ][  p = b ][  p = c ][  p = d ][  p = e ][  p = f ][  p = g ][  p = h ][  p = i ][  p = j ][  p = k ][  p = l ][  p = m ][  p = n ][  p = o ]Computed index = ÿ for key byte p
-    [  q = a ][  q = b ][  q = c ][  q = d ][  q = e ][  q = f ][  q = g ][  q = h ][  q = i ][  q = j ][  q = k ][  q = l ][  q = m ][  q = n ][  q = o ][  q = p ]Computed index = ÿ for key byte q
-    Grow node16
+    [  c = a ][  c = b ][  d = a ][  d = b ][  d = c ][  e = a ][  e = b ][  e = c ][  e = d ][  f = a ][  f = b ][  f = c ][  f = d ][  f = e ][  g = a ][  g = b ][  g = c ][  g = d ][  g = e ][  g = f ][  h = a ][  h = b ][  h = c ][  h = d ][  h = e ][  h = f ][  h = g ][  i = a ][  i = b ][  i = c ][  i = d ][  i = e ][  i = f ][  i = g ][  i = h ][  j = a ][  j = b ][  j = c ][  j = d ][  j = e ][  j = f ][  j = g ][  j = h ][  j = i ][  k = a ][  k = b ][  k = c ][  k = d ][  k = e ][  k = f ][  k = g ][  k = h ][  k = i ][  k = j ][  l = a ][  l = b ][  l = c ][  l = d ][  l = e ][  l = f ][  l = g ][  l = h ][  l = i ][  l = j ][  l = k ][  m = a ][  m = b ][  m = c ][  m = d ][  m = e ][  m = f ][  m = g ][  m = h ][  m = i ][  m = j ][  m = k ][  m = l ][  n = a ][  n = b ][  n = c ][  n = d ][  n = e ][  n = f ][  n = g ][  n = h ][  n = i ][  n = j ][  n = k ][  n = l ][  n = m ][  o = a ][  o = b ][  o = c ][  o = d ][  o = e ][  o = f ][  o = g ][  o = h ][  o = i ][  o = j ][  o = k ][  o = l ][  o = m ][  o = n ][  p = a ][  p = b ][  p = c ][  p = d ][  p = e ][  p = f ][  p = g ][  p = h ][  p = i ][  p = j ][  p = k ][  p = l ][  p = m ][  p = n ][  p = o ][  q = a ][  q = b ][  q = c ][  q = d ][  q = e ][  q = f ][  q = g ][  q = h ][  q = i ][  q = j ][  q = k ][  q = l ][  q = m ][  q = n ][  q = o ][  q = p ]Grow node16
     Node48Root node type after 17 insertions:
     Verifying sample keys:
     Searching in Node keys: [BYTE representation :[  ]
@@ -1508,7 +1422,6 @@ let%expect_test "Node16 to Node48 growth" =
     [  ]
     Level 0
     Node48 hit for 61 â†’ child 0
-    Computed index =   for key byte a
     search: find_child returned: Leaf
     Search key a compared with a  Found 'a'  97
     Searching in Node keys: [BYTE representation :[  ]
@@ -1776,7 +1689,6 @@ let%expect_test "Node16 to Node48 growth" =
     [  ]
     Level 0
     Node48 hit for 68 â†’ child 7
-    Computed index =  for key byte h
     search: find_child returned: Leaf
     Search key h compared with h  Found 'h'  104
     Searching in Node keys: [BYTE representation :[  ]
@@ -2044,7 +1956,6 @@ let%expect_test "Node16 to Node48 growth" =
     [  ]
     Level 0
     Node48 hit for 71 â†’ child 16
-    Computed index =  for key byte q
     search: find_child returned: Leaf
     Search key q compared with q  Found 'q'  113
 
@@ -2097,16 +2008,10 @@ let%expect_test "Node16 to Node48 growth" =
     children[45]: Empty
     children[46]: Empty
     children[47]: Empty
-    terminate INPUT: [61]
-    terminate OUTPUT: [61,00]
     find_child Node48: idx=0
     find_child Node48: real_idx=0
-    terminate INPUT: [68]
-    terminate OUTPUT: [68,00]
     find_child Node48: idx=7
     find_child Node48: real_idx=7
-    terminate INPUT: [71]
-    terminate OUTPUT: [71,00]
     find_child Node48: idx=16
     find_child Node48: real_idx=16
     |}]
@@ -2136,10 +2041,6 @@ let%expect_test "Node48 to Node256 growth" =
     | None -> Printf.printf " Key '%s' NOT FOUND\n" key
   ) ["a"; "m"; "z"; "A"; "M"; "W"];
   [%expect {|
-    terminate INPUT: [61]
-    terminate OUTPUT: [61,00]
-    terminate INPUT: [62]
-    terminate OUTPUT: [62,00]
     INSERT: Leaf case - existing key=a , new key=b 
     INSERT: Splitting leaf, creating Node4
     DEBUG: level=0, limit=0, new_level will be=0
@@ -2182,8 +2083,6 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at 1 -> 1
     count_non_empty_children: found 2 non-empty in array of length 4
     add_child returned: updated_keys=[61,62] nonempty_children=2
-    terminate INPUT: [63]
-    terminate OUTPUT: [63,00]
     find_child Node4/16: idx=255, array_length=4
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'c' (first byte=63)
@@ -2200,8 +2099,6 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at 2 -> 2
     count_non_empty_children: found 3 non-empty in array of length 4
     add_child returned: updated_keys=[61,62,63] nonempty_children=3
-    terminate INPUT: [64]
-    terminate OUTPUT: [64,00]
     find_child Node4/16: idx=255, array_length=4
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'd' (first byte=64)
@@ -2219,8 +2116,6 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at 3 -> 3
     count_non_empty_children: found 4 non-empty in array of length 4
     add_child returned: updated_keys=[61,62,63,64] nonempty_children=4
-    terminate INPUT: [65]
-    terminate OUTPUT: [65,00]
     find_child Node4/16: idx=255, array_length=4
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'e' (first byte=65)
@@ -2238,8 +2133,6 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at 4 -> Leaf_node
     count_non_empty_children: found 5 non-empty in array of length 16
     add_child returned: updated_keys=[61,62,63,64,65] nonempty_children=5
-    terminate INPUT: [66]
-    terminate OUTPUT: [66,00]
     find_child Node4/16: idx=255, array_length=16
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'f' (first byte=66)
@@ -2252,8 +2145,6 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at 5 -> Leaf_node
     count_non_empty_children: found 6 non-empty in array of length 16
     add_child returned: updated_keys=[61,62,63,64,65,66] nonempty_children=6
-    terminate INPUT: [67]
-    terminate OUTPUT: [67,00]
     find_child Node4/16: idx=255, array_length=16
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'g' (first byte=67)
@@ -2266,8 +2157,6 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at 6 -> Leaf_node
     count_non_empty_children: found 7 non-empty in array of length 16
     add_child returned: updated_keys=[61,62,63,64,65,66,67] nonempty_children=7
-    terminate INPUT: [68]
-    terminate OUTPUT: [68,00]
     find_child Node4/16: idx=255, array_length=16
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'h' (first byte=68)
@@ -2280,8 +2169,6 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at 7 -> Leaf_node
     count_non_empty_children: found 8 non-empty in array of length 16
     add_child returned: updated_keys=[61,62,63,64,65,66,67,68] nonempty_children=8
-    terminate INPUT: [69]
-    terminate OUTPUT: [69,00]
     find_child Node4/16: idx=255, array_length=16
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'i' (first byte=69)
@@ -2294,8 +2181,6 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at 8 -> Leaf_node
     count_non_empty_children: found 9 non-empty in array of length 16
     add_child returned: updated_keys=[61,62,63,64,65,66,67,68,69] nonempty_children=9
-    terminate INPUT: [6A]
-    terminate OUTPUT: [6A,00]
     find_child Node4/16: idx=255, array_length=16
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'j' (first byte=6A)
@@ -2308,8 +2193,6 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at 9 -> Leaf_node
     count_non_empty_children: found 10 non-empty in array of length 16
     add_child returned: updated_keys=[61,62,63,64,65,66,67,68,69,6A] nonempty_children=10
-    terminate INPUT: [6B]
-    terminate OUTPUT: [6B,00]
     find_child Node4/16: idx=255, array_length=16
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'k' (first byte=6B)
@@ -2322,8 +2205,6 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at 10 -> Leaf_node
     count_non_empty_children: found 11 non-empty in array of length 16
     add_child returned: updated_keys=[61,62,63,64,65,66,67,68,69,6A,6B] nonempty_children=11
-    terminate INPUT: [6C]
-    terminate OUTPUT: [6C,00]
     find_child Node4/16: idx=255, array_length=16
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'l' (first byte=6C)
@@ -2336,8 +2217,6 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at 11 -> Leaf_node
     count_non_empty_children: found 12 non-empty in array of length 16
     add_child returned: updated_keys=[61,62,63,64,65,66,67,68,69,6A,6B,6C] nonempty_children=12
-    terminate INPUT: [6D]
-    terminate OUTPUT: [6D,00]
     find_child Node4/16: idx=255, array_length=16
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'm' (first byte=6D)
@@ -2350,8 +2229,6 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at 12 -> Leaf_node
     count_non_empty_children: found 13 non-empty in array of length 16
     add_child returned: updated_keys=[61,62,63,64,65,66,67,68,69,6A,6B,6C,6D] nonempty_children=13
-    terminate INPUT: [6E]
-    terminate OUTPUT: [6E,00]
     find_child Node4/16: idx=255, array_length=16
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'n' (first byte=6E)
@@ -2364,8 +2241,6 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at 13 -> Leaf_node
     count_non_empty_children: found 14 non-empty in array of length 16
     add_child returned: updated_keys=[61,62,63,64,65,66,67,68,69,6A,6B,6C,6D,6E] nonempty_children=14
-    terminate INPUT: [6F]
-    terminate OUTPUT: [6F,00]
     find_child Node4/16: idx=255, array_length=16
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'o' (first byte=6F)
@@ -2378,8 +2253,6 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at 14 -> Leaf_node
     count_non_empty_children: found 15 non-empty in array of length 16
     add_child returned: updated_keys=[61,62,63,64,65,66,67,68,69,6A,6B,6C,6D,6E,6F] nonempty_children=15
-    terminate INPUT: [70]
-    terminate OUTPUT: [70,00]
     find_child Node4/16: idx=255, array_length=16
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'p' (first byte=70)
@@ -2392,8 +2265,6 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at 15 -> Leaf_node
     count_non_empty_children: found 16 non-empty in array of length 16
     add_child returned: updated_keys=[61,62,63,64,65,66,67,68,69,6A,6B,6C,6D,6E,6F,70] nonempty_children=16
-    terminate INPUT: [71]
-    terminate OUTPUT: [71,00]
     find_child Node4/16: idx=255, array_length=16
     find_child Node4/16: not found (255)
     INSERT Inner_node: level=0, List.nth key level = 'q' (first byte=71)
@@ -2411,26 +2282,8 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=16 for byte=113
     count_non_empty_children: found 17 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=17
-    === Test: Node48 â†’ Node256 Growth ===
-    [  c = a ][  c = b ][  d = a ][  d = b ][  d = c ][  e = a ][  e = b ][  e = c ][  e = d ]Computed index = ÿ for key byte c
-    Computed index = ÿ for key byte d
-    Computed index = ÿ for key byte e
-    [  f = a ][  f = b ][  f = c ][  f = d ][  f = e ]Computed index = ÿ for key byte f
-    [  g = a ][  g = b ][  g = c ][  g = d ][  g = e ][  g = f ]Computed index = ÿ for key byte g
-    [  h = a ][  h = b ][  h = c ][  h = d ][  h = e ][  h = f ][  h = g ]Computed index = ÿ for key byte h
-    [  i = a ][  i = b ][  i = c ][  i = d ][  i = e ][  i = f ][  i = g ][  i = h ]Computed index = ÿ for key byte i
-    [  j = a ][  j = b ][  j = c ][  j = d ][  j = e ][  j = f ][  j = g ][  j = h ][  j = i ]Computed index = ÿ for key byte j
-    [  k = a ][  k = b ][  k = c ][  k = d ][  k = e ][  k = f ][  k = g ][  k = h ][  k = i ][  k = j ]Computed index = ÿ for key byte k
-    [  l = a ][  l = b ][  l = c ][  l = d ][  l = e ][  l = f ][  l = g ][  l = h ][  l = i ][  l = j ][  l = k ]Computed index = ÿ for key byte l
-    [  m = a ][  m = b ][  m = c ][  m = d ][  m = e ][  m = f ][  m = g ][  m = h ][  m = i ][  m = j ][  m = k ][  m = l ]Computed index = ÿ for key byte m
-    [  n = a ][  n = b ][  n = c ][  n = d ][  n = e ][  n = f ][  n = g ][  n = h ][  n = i ][  n = j ][  n = k ][  n = l ][  n = m ]Computed index = ÿ for key byte n
-    [  o = a ][  o = b ][  o = c ][  o = d ][  o = e ][  o = f ][  o = g ][  o = h ][  o = i ][  o = j ][  o = k ][  o = l ][  o = m ][  o = n ]Computed index = ÿ for key byte o
-    [  p = a ][  p = b ][  p = c ][  p = d ][  p = e ][  p = f ][  p = g ][  p = h ][  p = i ][  p = j ][  p = k ][  p = l ][  p = m ][  p = n ][  p = o ]Computed index = ÿ for key byte p
-    [  q = a ][  q = b ][  q = c ][  q = d ][  q = e ][  q = f ][  q = g ][  q = h ][  q = i ][  q = j ][  q = k ][  q = l ][  q = m ][  q = n ][  q = o ][  q = p ]Computed index = ÿ for key byte q
-    Grow node16
+    [  c = a ][  c = b ][  d = a ][  d = b ][  d = c ][  e = a ][  e = b ][  e = c ][  e = d ][  f = a ][  f = b ][  f = c ][  f = d ][  f = e ][  g = a ][  g = b ][  g = c ][  g = d ][  g = e ][  g = f ][  h = a ][  h = b ][  h = c ][  h = d ][  h = e ][  h = f ][  h = g ][  i = a ][  i = b ][  i = c ][  i = d ][  i = e ][  i = f ][  i = g ][  i = h ][  j = a ][  j = b ][  j = c ][  j = d ][  j = e ][  j = f ][  j = g ][  j = h ][  j = i ][  k = a ][  k = b ][  k = c ][  k = d ][  k = e ][  k = f ][  k = g ][  k = h ][  k = i ][  k = j ][  l = a ][  l = b ][  l = c ][  l = d ][  l = e ][  l = f ][  l = g ][  l = h ][  l = i ][  l = j ][  l = k ][  m = a ][  m = b ][  m = c ][  m = d ][  m = e ][  m = f ][  m = g ][  m = h ][  m = i ][  m = j ][  m = k ][  m = l ][  n = a ][  n = b ][  n = c ][  n = d ][  n = e ][  n = f ][  n = g ][  n = h ][  n = i ][  n = j ][  n = k ][  n = l ][  n = m ][  o = a ][  o = b ][  o = c ][  o = d ][  o = e ][  o = f ][  o = g ][  o = h ][  o = i ][  o = j ][  o = k ][  o = l ][  o = m ][  o = n ][  p = a ][  p = b ][  p = c ][  p = d ][  p = e ][  p = f ][  p = g ][  p = h ][  p = i ][  p = j ][  p = k ][  p = l ][  p = m ][  p = n ][  p = o ][  q = a ][  q = b ][  q = c ][  q = d ][  q = e ][  q = f ][  q = g ][  q = h ][  q = i ][  q = j ][  q = k ][  q = l ][  q = m ][  q = n ][  q = o ][  q = p ]Grow node16
     Node48Node48 miss for 72
-    terminate INPUT: [72]
-    terminate OUTPUT: [72,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'r' (first byte=72)
     count_non_empty_children: found 17 non-empty in array of length 48
@@ -2442,10 +2295,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=17 for byte=114
     count_non_empty_children: found 18 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=18
-    Computed index = ÿ for key byte r
     Node48Node48 miss for 73
-    terminate INPUT: [73]
-    terminate OUTPUT: [73,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 's' (first byte=73)
     count_non_empty_children: found 18 non-empty in array of length 48
@@ -2457,10 +2307,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=18 for byte=115
     count_non_empty_children: found 19 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=19
-    Computed index = ÿ for key byte s
     Node48Node48 miss for 74
-    terminate INPUT: [74]
-    terminate OUTPUT: [74,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 't' (first byte=74)
     count_non_empty_children: found 19 non-empty in array of length 48
@@ -2472,10 +2319,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=19 for byte=116
     count_non_empty_children: found 20 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=20
-    Computed index = ÿ for key byte t
     Node48Node48 miss for 75
-    terminate INPUT: [75]
-    terminate OUTPUT: [75,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'u' (first byte=75)
     count_non_empty_children: found 20 non-empty in array of length 48
@@ -2487,10 +2331,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=20 for byte=117
     count_non_empty_children: found 21 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=21
-    Computed index = ÿ for key byte u
     Node48Node48 miss for 76
-    terminate INPUT: [76]
-    terminate OUTPUT: [76,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'v' (first byte=76)
     count_non_empty_children: found 21 non-empty in array of length 48
@@ -2502,10 +2343,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=21 for byte=118
     count_non_empty_children: found 22 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=22
-    Computed index = ÿ for key byte v
     Node48Node48 miss for 77
-    terminate INPUT: [77]
-    terminate OUTPUT: [77,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'w' (first byte=77)
     count_non_empty_children: found 22 non-empty in array of length 48
@@ -2517,10 +2355,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=22 for byte=119
     count_non_empty_children: found 23 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=23
-    Computed index = ÿ for key byte w
     Node48Node48 miss for 78
-    terminate INPUT: [78]
-    terminate OUTPUT: [78,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'x' (first byte=78)
     count_non_empty_children: found 23 non-empty in array of length 48
@@ -2532,10 +2367,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=23 for byte=120
     count_non_empty_children: found 24 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=24
-    Computed index = ÿ for key byte x
     Node48Node48 miss for 79
-    terminate INPUT: [79]
-    terminate OUTPUT: [79,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'y' (first byte=79)
     count_non_empty_children: found 24 non-empty in array of length 48
@@ -2547,10 +2379,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=24 for byte=121
     count_non_empty_children: found 25 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=25
-    Computed index = ÿ for key byte y
     Node48Node48 miss for 7A
-    terminate INPUT: [7A]
-    terminate OUTPUT: [7A,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'z' (first byte=7A)
     count_non_empty_children: found 25 non-empty in array of length 48
@@ -2562,10 +2391,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=25 for byte=122
     count_non_empty_children: found 26 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,1A,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=26
-    Computed index = ÿ for key byte z
     Node48Node48 miss for 41
-    terminate INPUT: [41]
-    terminate OUTPUT: [41,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'A' (first byte=41)
     count_non_empty_children: found 26 non-empty in array of length 48
@@ -2577,10 +2403,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=26 for byte=65
     count_non_empty_children: found 27 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,1B,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,1A,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=27
-    Computed index = ÿ for key byte A
     Node48Node48 miss for 42
-    terminate INPUT: [42]
-    terminate OUTPUT: [42,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'B' (first byte=42)
     count_non_empty_children: found 27 non-empty in array of length 48
@@ -2592,10 +2415,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=27 for byte=66
     count_non_empty_children: found 28 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,1B,1C,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,1A,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=28
-    Computed index = ÿ for key byte B
     Node48Node48 miss for 43
-    terminate INPUT: [43]
-    terminate OUTPUT: [43,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'C' (first byte=43)
     count_non_empty_children: found 28 non-empty in array of length 48
@@ -2607,10 +2427,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=28 for byte=67
     count_non_empty_children: found 29 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,1B,1C,1D,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,1A,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=29
-    Computed index = ÿ for key byte C
     Node48Node48 miss for 44
-    terminate INPUT: [44]
-    terminate OUTPUT: [44,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'D' (first byte=44)
     count_non_empty_children: found 29 non-empty in array of length 48
@@ -2622,10 +2439,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=29 for byte=68
     count_non_empty_children: found 30 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,1B,1C,1D,1E,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,1A,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=30
-    Computed index = ÿ for key byte D
     Node48Node48 miss for 45
-    terminate INPUT: [45]
-    terminate OUTPUT: [45,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'E' (first byte=45)
     count_non_empty_children: found 30 non-empty in array of length 48
@@ -2637,10 +2451,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=30 for byte=69
     count_non_empty_children: found 31 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,1B,1C,1D,1E,1F,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,1A,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=31
-    Computed index = ÿ for key byte E
     Node48Node48 miss for 46
-    terminate INPUT: [46]
-    terminate OUTPUT: [46,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'F' (first byte=46)
     count_non_empty_children: found 31 non-empty in array of length 48
@@ -2652,10 +2463,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=31 for byte=70
     count_non_empty_children: found 32 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,1B,1C,1D,1E,1F,20,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,1A,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=32
-    Computed index = ÿ for key byte F
     Node48Node48 miss for 47
-    terminate INPUT: [47]
-    terminate OUTPUT: [47,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'G' (first byte=47)
     count_non_empty_children: found 32 non-empty in array of length 48
@@ -2667,10 +2475,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=32 for byte=71
     count_non_empty_children: found 33 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,1B,1C,1D,1E,1F,20,21,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,1A,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=33
-    Computed index = ÿ for key byte G
     Node48Node48 miss for 48
-    terminate INPUT: [48]
-    terminate OUTPUT: [48,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'H' (first byte=48)
     count_non_empty_children: found 33 non-empty in array of length 48
@@ -2682,10 +2487,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=33 for byte=72
     count_non_empty_children: found 34 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,1B,1C,1D,1E,1F,20,21,22,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,1A,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=34
-    Computed index = ÿ for key byte H
     Node48Node48 miss for 49
-    terminate INPUT: [49]
-    terminate OUTPUT: [49,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'I' (first byte=49)
     count_non_empty_children: found 34 non-empty in array of length 48
@@ -2697,10 +2499,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=34 for byte=73
     count_non_empty_children: found 35 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,1B,1C,1D,1E,1F,20,21,22,23,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,1A,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=35
-    Computed index = ÿ for key byte I
     Node48Node48 miss for 4A
-    terminate INPUT: [4A]
-    terminate OUTPUT: [4A,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'J' (first byte=4A)
     count_non_empty_children: found 35 non-empty in array of length 48
@@ -2712,10 +2511,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=35 for byte=74
     count_non_empty_children: found 36 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,1B,1C,1D,1E,1F,20,21,22,23,24,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,1A,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=36
-    Computed index = ÿ for key byte J
     Node48Node48 miss for 4B
-    terminate INPUT: [4B]
-    terminate OUTPUT: [4B,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'K' (first byte=4B)
     count_non_empty_children: found 36 non-empty in array of length 48
@@ -2727,10 +2523,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=36 for byte=75
     count_non_empty_children: found 37 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,1B,1C,1D,1E,1F,20,21,22,23,24,25,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,1A,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=37
-    Computed index = ÿ for key byte K
     Node48Node48 miss for 4C
-    terminate INPUT: [4C]
-    terminate OUTPUT: [4C,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'L' (first byte=4C)
     count_non_empty_children: found 37 non-empty in array of length 48
@@ -2742,10 +2535,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=37 for byte=76
     count_non_empty_children: found 38 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,1B,1C,1D,1E,1F,20,21,22,23,24,25,26,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,1A,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=38
-    Computed index = ÿ for key byte L
     Node48Node48 miss for 4D
-    terminate INPUT: [4D]
-    terminate OUTPUT: [4D,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'M' (first byte=4D)
     count_non_empty_children: found 38 non-empty in array of length 48
@@ -2757,10 +2547,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=38 for byte=77
     count_non_empty_children: found 39 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,1B,1C,1D,1E,1F,20,21,22,23,24,25,26,27,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,1A,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=39
-    Computed index = ÿ for key byte M
     Node48Node48 miss for 4E
-    terminate INPUT: [4E]
-    terminate OUTPUT: [4E,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'N' (first byte=4E)
     count_non_empty_children: found 39 non-empty in array of length 48
@@ -2772,10 +2559,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=39 for byte=78
     count_non_empty_children: found 40 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,1B,1C,1D,1E,1F,20,21,22,23,24,25,26,27,28,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,1A,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=40
-    Computed index = ÿ for key byte N
     Node48Node48 miss for 4F
-    terminate INPUT: [4F]
-    terminate OUTPUT: [4F,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'O' (first byte=4F)
     count_non_empty_children: found 40 non-empty in array of length 48
@@ -2787,10 +2571,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=40 for byte=79
     count_non_empty_children: found 41 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,1B,1C,1D,1E,1F,20,21,22,23,24,25,26,27,28,29,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,1A,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=41
-    Computed index = ÿ for key byte O
     Node48Node48 miss for 50
-    terminate INPUT: [50]
-    terminate OUTPUT: [50,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'P' (first byte=50)
     count_non_empty_children: found 41 non-empty in array of length 48
@@ -2802,10 +2583,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=41 for byte=80
     count_non_empty_children: found 42 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,1B,1C,1D,1E,1F,20,21,22,23,24,25,26,27,28,29,2A,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,1A,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=42
-    Computed index = ÿ for key byte P
     Node48Node48 miss for 51
-    terminate INPUT: [51]
-    terminate OUTPUT: [51,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'Q' (first byte=51)
     count_non_empty_children: found 42 non-empty in array of length 48
@@ -2817,10 +2595,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=42 for byte=81
     count_non_empty_children: found 43 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,1B,1C,1D,1E,1F,20,21,22,23,24,25,26,27,28,29,2A,2B,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,1A,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=43
-    Computed index = ÿ for key byte Q
     Node48Node48 miss for 52
-    terminate INPUT: [52]
-    terminate OUTPUT: [52,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'R' (first byte=52)
     count_non_empty_children: found 43 non-empty in array of length 48
@@ -2832,10 +2607,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=43 for byte=82
     count_non_empty_children: found 44 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,1B,1C,1D,1E,1F,20,21,22,23,24,25,26,27,28,29,2A,2B,2C,00,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,1A,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=44
-    Computed index = ÿ for key byte R
     Node48Node48 miss for 53
-    terminate INPUT: [53]
-    terminate OUTPUT: [53,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'S' (first byte=53)
     count_non_empty_children: found 44 non-empty in array of length 48
@@ -2847,10 +2619,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=44 for byte=83
     count_non_empty_children: found 45 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,1B,1C,1D,1E,1F,20,21,22,23,24,25,26,27,28,29,2A,2B,2C,2D,00,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,1A,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=45
-    Computed index = ÿ for key byte S
     Node48Node48 miss for 54
-    terminate INPUT: [54]
-    terminate OUTPUT: [54,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'T' (first byte=54)
     count_non_empty_children: found 45 non-empty in array of length 48
@@ -2862,10 +2631,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=45 for byte=84
     count_non_empty_children: found 46 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,1B,1C,1D,1E,1F,20,21,22,23,24,25,26,27,28,29,2A,2B,2C,2D,2E,00,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,1A,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=46
-    Computed index = ÿ for key byte T
     Node48Node48 miss for 55
-    terminate INPUT: [55]
-    terminate OUTPUT: [55,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'U' (first byte=55)
     count_non_empty_children: found 46 non-empty in array of length 48
@@ -2877,10 +2643,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=46 for byte=85
     count_non_empty_children: found 47 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,1B,1C,1D,1E,1F,20,21,22,23,24,25,26,27,28,29,2A,2B,2C,2D,2E,2F,00,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,1A,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=47
-    Computed index = ÿ for key byte U
     Node48Node48 miss for 56
-    terminate INPUT: [56]
-    terminate OUTPUT: [56,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'V' (first byte=56)
     count_non_empty_children: found 47 non-empty in array of length 48
@@ -2892,10 +2655,7 @@ let%expect_test "Node48 to Node256 growth" =
     Added child at idx=47 for byte=86
     count_non_empty_children: found 48 non-empty in array of length 48
     add_child returned: updated_keys=[00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,1B,1C,1D,1E,1F,20,21,22,23,24,25,26,27,28,29,2A,2B,2C,2D,2E,2F,30,00,00,00,00,00,00,00,00,00,00,01,02,03,04,05,06,07,08,09,0A,0B,0C,0D,0E,0F,10,11,12,13,14,15,16,17,18,19,1A,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00,00] nonempty_children=48
-    Computed index = ÿ for key byte V
     Node48Node48 miss for 57
-    terminate INPUT: [57]
-    terminate OUTPUT: [57,00]
     find_child Node48: idx=255
     INSERT Inner_node: level=0, List.nth key level = 'W' (first byte=57)
     count_non_empty_children: found 48 non-empty in array of length 48
@@ -2911,39 +2671,35 @@ let%expect_test "Node48 to Node256 growth" =
     add_child Node48: storing mapping for byte=57 ('W')
     count_non_empty_children: found 49 non-empty in array of length 256
     add_child returned: updated_keys=[] nonempty_children=49
-    Computed index = ÿ for key byte W
     Grow node48
     Node256Root node type after 49 insertions:
     Verifying sample keys:
+    Searching in Node keys: []
+     prefix_match_index1 node key level 0  prefix_len 0
+    Level 0
+    Node256 [  a  ]search: find_child returned: Leaf
+    Search key a compared with a  Found 'a' 97
+    Searching in Node keys: []
+     prefix_match_index1 node key level 0  prefix_len 0
+    Level 0
+    Node256 [  m  ]search: find_child returned: Leaf
+    Search key m compared with m  Found 'm' 109
     Searching in Node keys: []
      prefix_match_index1 node key level 0  prefix_len 0
 
     Length of key 2
      [ a]
     [  ]
-    Level 0
-    Node256 [  a  ]Computed index = a for key byte a
-    search: find_child returned: Leaf
-    Search key a compared with a  Found 'a' 97
-    Searching in Node keys: []
-     prefix_match_index1 node key level 0  prefix_len 0
 
     Length of key 2
      [ m]
     [  ]
-    Level 0
-    Node256 [  m  ]Computed index = m for key byte m
-    search: find_child returned: Leaf
-    Search key m compared with m  Found 'm' 109
-    Searching in Node keys: []
-     prefix_match_index1 node key level 0  prefix_len 0
 
     Length of key 2
      [ z]
     [  ]
     Level 0
-    Node256 [  z  ]Computed index = z for key byte z
-    search: find_child returned: Leaf
+    Node256 [  z  ]search: find_child returned: Leaf
     Search key z compared with z  Found 'z' 122
     Searching in Node keys: []
      prefix_match_index1 node key level 0  prefix_len 0
@@ -2952,8 +2708,7 @@ let%expect_test "Node48 to Node256 growth" =
      [ A]
     [  ]
     Level 0
-    Node256 [  A  ]Computed index = A for key byte A
-    search: find_child returned: Leaf
+    Node256 [  A  ]search: find_child returned: Leaf
     Search key A compared with A  Found 'A' 65
     Searching in Node keys: []
      prefix_match_index1 node key level 0  prefix_len 0
@@ -2962,8 +2717,7 @@ let%expect_test "Node48 to Node256 growth" =
      [ M]
     [  ]
     Level 0
-    Node256 [  M  ]Computed index = M for key byte M
-    search: find_child returned: Leaf
+    Node256 [  M  ]search: find_child returned: Leaf
     Search key M compared with M  Found 'M' 77
     Searching in Node keys: []
      prefix_match_index1 node key level 0  prefix_len 0
@@ -2972,8 +2726,7 @@ let%expect_test "Node48 to Node256 growth" =
      [ W]
     [  ]
     Level 0
-    Node256 [  W  ]Computed index = W for key byte W
-    search: find_child returned: Leaf
+    Node256 [  W  ]search: find_child returned: Leaf
     Search key W compared with W  Found 'W' 87
 
     === DEBUG: Children array contents ===
@@ -3233,23 +2986,11 @@ let%expect_test "Node48 to Node256 growth" =
     children[253]: Empty
     children[254]: Empty
     children[255]: Empty
-    terminate INPUT: [61]
-    terminate OUTPUT: [61,00]
     find_child Node256: using key byte directly
-    terminate INPUT: [6D]
-    terminate OUTPUT: [6D,00]
     find_child Node256: using key byte directly
-    terminate INPUT: [7A]
-    terminate OUTPUT: [7A,00]
     find_child Node256: using key byte directly
-    terminate INPUT: [41]
-    terminate OUTPUT: [41,00]
     find_child Node256: using key byte directly
-    terminate INPUT: [4D]
-    terminate OUTPUT: [4D,00]
     find_child Node256: using key byte directly
-    terminate INPUT: [57]
-    terminate OUTPUT: [57,00]
     find_child Node256: using key byte directly
     |}]
 
@@ -3280,282 +3021,249 @@ let%expect_test "Test prefixes" =
     | Some v -> Printf.printf " Found '%s'  %Ld\n" key_str v
     | None -> Printf.printf " Key '%s' NOT FOUND\n" key_str
   ) keys;
-  [%expect {|
-    Inserting: helloworld
-    Inserting: yoearth
-    terminate INPUT: [68,77]
-    terminate OUTPUT: [68,77,00]
-    terminate INPUT: [79,65]
-    terminate OUTPUT: [79,65,00]
-    INSERT: Leaf case - existing key=helloworld , new key=yoearth 
-    INSERT: Splitting leaf, creating Node4
-    DEBUG: level=0, limit=0, new_level will be=0
-    DEBUG new_node4: array length=4
-      [0] = Empty âœ“
-      [1] = Empty âœ“
-      [2] = Empty âœ“
-      [3] = Empty âœ“
-    count_non_empty_children: found 0 non-empty in array of length 4
-    count_non_empty_children: found 0 non-empty in array of length 4
-    INSERT: shared prefix length=0
-    INSERT: new_level=0
-    INSERT: old_key length=3, new_key length=3
-    INSERT: old leaf goes at byte=68
-    INSERT: new leaf goes at byte=79
-    DEBUG: old leaf key=helloworld , new leaf key=yoearth 
-    DEBUG: Adding old leaf with key byte=68
-    INSERT Leaf split: new_level=0, old_key_byte='hello' (byte=68), new_key_byte='yo' (byte=79)
-    count_non_empty_children: found 0 non-empty in array of length 4
-    add_child called: key=68 parent_size=0 nonempty_children=0 keys=[00,00,00,00]
-    count_non_empty_children: found 0 non-empty in array of length 4
-      parent size=0 nonempty=0
-    count_non_empty_children: found 0 non-empty in array of length 4
-    add_child Node4: new_keys after insert (total 1 keys):
-      [0]: 'hello' (len=5 bytes)
-    add_child Node4: storing key byte=68 ('h') at idx=0
-    Added child at 0 -> 0
-    count_non_empty_children: found 1 non-empty in array of length 4
-    add_child returned: updated_keys=[68] nonempty_children=1
-    DEBUG: Adding new leaf with key byte=79
-    count_non_empty_children: found 1 non-empty in array of length 4
-    add_child called: key=79 parent_size=1 nonempty_children=1 keys=[68]
-    count_non_empty_children: found 1 non-empty in array of length 4
-      parent size=1 nonempty=1
-    count_non_empty_children: found 1 non-empty in array of length 4
-    add_child Node4: new_keys after insert (total 2 keys):
-      [0]: 'hello' (len=5 bytes)
-      [1]: 'yo' (len=2 bytes)
-    add_child Node4: storing key byte=79 ('y') at idx=1
-    Added child at 1 -> 1
-    count_non_empty_children: found 2 non-empty in array of length 4
-    add_child returned: updated_keys=[68,79] nonempty_children=2
-    Inserting: yoloearth
-    terminate INPUT: [79,65]
-    terminate OUTPUT: [79,65,00]
-    find_child Node4/16: idx=255, array_length=4
-    find_child Node4/16: not found (255)
-    INSERT Inner_node: level=0, List.nth key level = 'yolo' (first byte=79)
-    count_non_empty_children: found 2 non-empty in array of length 4
-    add_child called: key=79 parent_size=2 nonempty_children=2 keys=[68,79]
-    count_non_empty_children: found 2 non-empty in array of length 4
-      parent size=2 nonempty=2
-    count_non_empty_children: found 2 non-empty in array of length 4
-    add_child Node4: new_keys after insert (total 3 keys):
-      [0]: 'hello' (len=5 bytes)
-      [1]: 'yo' (len=2 bytes)
-      [2]: 'yolo' (len=4 bytes)
-    add_child Node4: storing key byte=79 ('y') at idx=2
-    Added child at 2 -> 2
-    count_non_empty_children: found 3 non-empty in array of length 4
-    add_child returned: updated_keys=[68,79,79] nonempty_children=3
-    [  yolo = hello ][  yolo = yo ]Inserting: yolearth
-    terminate INPUT: [79,65]
-    terminate OUTPUT: [79,65,00]
-    find_child Node4/16: idx=255, array_length=4
-    find_child Node4/16: not found (255)
-    INSERT Inner_node: level=0, List.nth key level = 'yol' (first byte=79)
-    count_non_empty_children: found 3 non-empty in array of length 4
-    add_child called: key=79 parent_size=3 nonempty_children=3 keys=[68,79,79]
-    count_non_empty_children: found 3 non-empty in array of length 4
-      parent size=3 nonempty=3
-    count_non_empty_children: found 3 non-empty in array of length 4
-    add_child Node4: new_keys after insert (total 4 keys):
-      [0]: 'hello' (len=5 bytes)
-      [1]: 'yo' (len=2 bytes)
-      [2]: 'yol' (len=3 bytes)
-      [3]: 'yolo' (len=4 bytes)
-    add_child Node4: storing key byte=79 ('y') at idx=2
-    Added child at 2 -> 3
-    count_non_empty_children: found 4 non-empty in array of length 4
-    add_child returned: updated_keys=[68,79,79,79] nonempty_children=4
-    [  yol = hello ][  yol = yo ][  yol = yolo ]Inserting: yoliearth
-    terminate INPUT: [79,65]
-    terminate OUTPUT: [79,65,00]
-    find_child Node4/16: idx=255, array_length=4
-    find_child Node4/16: not found (255)
-    INSERT Inner_node: level=0, List.nth key level = 'yoli' (first byte=79)
-    count_non_empty_children: found 4 non-empty in array of length 4
-    add_child called: key=79 parent_size=4 nonempty_children=4 keys=[68,79,79,79]
-    count_non_empty_children: found 4 non-empty in array of length 4
-      parent size=4 nonempty=4
-    count_non_empty_children: found 4 non-empty in array of length 4
-    count_non_empty_children: found 0 non-empty in array of length 16
-    count_non_empty_children: found 4 non-empty in array of length 16
-    count_non_empty_children: found 4 non-empty in array of length 16
-      parent size=4 nonempty=4
-    count_non_empty_children: found 4 non-empty in array of length 16
-    add_child Node4: storing key byte=79 ('y') at idx=3
-    Added child at 3 -> Leaf_node
-    count_non_empty_children: found 5 non-empty in array of length 16
-    add_child returned: updated_keys=[68,79,79,79,79] nonempty_children=5
-    [  yoli = hello ][  yoli = yo ][  yoli = yol ][  yoli = yolo ]Computed index = ÿ for key byte y
-    Computed index = ÿ for key byte y
-    Computed index = ÿ for key byte y
-    Inserting: yopoearth
-    terminate INPUT: [79,65]
-    terminate OUTPUT: [79,65,00]
-    find_child Node4/16: idx=255, array_length=16
-    find_child Node4/16: not found (255)
-    INSERT Inner_node: level=0, List.nth key level = 'yopo' (first byte=79)
-    count_non_empty_children: found 5 non-empty in array of length 16
-    add_child called: key=79 parent_size=5 nonempty_children=5 keys=[68,79,79,79,79]
-    count_non_empty_children: found 5 non-empty in array of length 16
-      parent size=5 nonempty=5
-    count_non_empty_children: found 5 non-empty in array of length 16
-    add_child Node4: storing key byte=79 ('y') at idx=5
-    Added child at 5 -> Leaf_node
-    count_non_empty_children: found 6 non-empty in array of length 16
-    add_child returned: updated_keys=[68,79,79,79,79,79] nonempty_children=6
-    [  yopo = hello ][  yopo = yo ][  yopo = yol ][  yopo = yoli ][  yopo = yolo ]Computed index = ÿ for key byte y
+[%expect {|
+  Inserting: helloworld
+  Inserting: yoearth
+  INSERT: Leaf case - existing key=helloworld , new key=yoearth 
+  INSERT: Splitting leaf, creating Node4
+  DEBUG: level=0, limit=0, new_level will be=0
+  DEBUG new_node4: array length=4
+    [0] = Empty âœ“
+    [1] = Empty âœ“
+    [2] = Empty âœ“
+    [3] = Empty âœ“
+  count_non_empty_children: found 0 non-empty in array of length 4
+  count_non_empty_children: found 0 non-empty in array of length 4
+  INSERT: shared prefix length=0
+  INSERT: new_level=0
+  INSERT: old_key length=3, new_key length=3
+  INSERT: old leaf goes at byte=68
+  INSERT: new leaf goes at byte=79
+  DEBUG: old leaf key=helloworld , new leaf key=yoearth 
+  DEBUG: Adding old leaf with key byte=68
+  INSERT Leaf split: new_level=0, old_key_byte='hello' (byte=68), new_key_byte='yo' (byte=79)
+  count_non_empty_children: found 0 non-empty in array of length 4
+  add_child called: key=68 parent_size=0 nonempty_children=0 keys=[00,00,00,00]
+  count_non_empty_children: found 0 non-empty in array of length 4
+    parent size=0 nonempty=0
+  count_non_empty_children: found 0 non-empty in array of length 4
+  add_child Node4: new_keys after insert (total 1 keys):
+    [0]: 'hello' (len=5 bytes)
+  add_child Node4: storing key byte=68 ('h') at idx=0
+  Added child at 0 -> 0
+  count_non_empty_children: found 1 non-empty in array of length 4
+  add_child returned: updated_keys=[68] nonempty_children=1
+  DEBUG: Adding new leaf with key byte=79
+  count_non_empty_children: found 1 non-empty in array of length 4
+  add_child called: key=79 parent_size=1 nonempty_children=1 keys=[68]
+  count_non_empty_children: found 1 non-empty in array of length 4
+    parent size=1 nonempty=1
+  count_non_empty_children: found 1 non-empty in array of length 4
+  add_child Node4: new_keys after insert (total 2 keys):
+    [0]: 'hello' (len=5 bytes)
+    [1]: 'yo' (len=2 bytes)
+  add_child Node4: storing key byte=79 ('y') at idx=1
+  Added child at 1 -> 1
+  count_non_empty_children: found 2 non-empty in array of length 4
+  add_child returned: updated_keys=[68,79] nonempty_children=2
+  Inserting: yoloearth
+  find_child Node4/16: idx=255, array_length=4
+  find_child Node4/16: not found (255)
+  INSERT Inner_node: level=0, List.nth key level = 'yolo' (first byte=79)
+  count_non_empty_children: found 2 non-empty in array of length 4
+  add_child called: key=79 parent_size=2 nonempty_children=2 keys=[68,79]
+  count_non_empty_children: found 2 non-empty in array of length 4
+    parent size=2 nonempty=2
+  count_non_empty_children: found 2 non-empty in array of length 4
+  add_child Node4: new_keys after insert (total 3 keys):
+    [0]: 'hello' (len=5 bytes)
+    [1]: 'yo' (len=2 bytes)
+    [2]: 'yolo' (len=4 bytes)
+  add_child Node4: storing key byte=79 ('y') at idx=2
+  Added child at 2 -> 2
+  count_non_empty_children: found 3 non-empty in array of length 4
+  add_child returned: updated_keys=[68,79,79] nonempty_children=3
+  [  yolo = hello ][  yolo = yo ]Inserting: yolearth
+  find_child Node4/16: idx=255, array_length=4
+  find_child Node4/16: not found (255)
+  INSERT Inner_node: level=0, List.nth key level = 'yol' (first byte=79)
+  count_non_empty_children: found 3 non-empty in array of length 4
+  add_child called: key=79 parent_size=3 nonempty_children=3 keys=[68,79,79]
+  count_non_empty_children: found 3 non-empty in array of length 4
+    parent size=3 nonempty=3
+  count_non_empty_children: found 3 non-empty in array of length 4
+  add_child Node4: new_keys after insert (total 4 keys):
+    [0]: 'hello' (len=5 bytes)
+    [1]: 'yo' (len=2 bytes)
+    [2]: 'yol' (len=3 bytes)
+    [3]: 'yolo' (len=4 bytes)
+  add_child Node4: storing key byte=79 ('y') at idx=2
 
-    Root node type: Searching in Node keys: [BYTE representation :[ hello]
-    BYTE representation :[ yo]
-    BYTE representation :[ yol]
-    BYTE representation :[ yoli]
-    BYTE representation :[ yolo]
-    BYTE representation :[ yopo]
-    ]
-     prefix_match_index1 node key level 0  prefix_len 0
+  add_child loop_while Node4: [size=3][i=3][idx=2][No: of children=4]Added child at 2 -> 3
+  count_non_empty_children: found 4 non-empty in array of length 4
+  add_child returned: updated_keys=[68,79,79,79] nonempty_children=4
+  [  yol = hello ][  yol = yo ][  yol = yolo ]Inserting: yoliearth
+  find_child Node4/16: idx=255, array_length=4
+  find_child Node4/16: not found (255)
+  INSERT Inner_node: level=0, List.nth key level = 'yoli' (first byte=79)
+  count_non_empty_children: found 4 non-empty in array of length 4
+  add_child called: key=79 parent_size=4 nonempty_children=4 keys=[68,79,79,79]
+  count_non_empty_children: found 4 non-empty in array of length 4
+    parent size=4 nonempty=4
+  count_non_empty_children: found 4 non-empty in array of length 4
+  count_non_empty_children: found 0 non-empty in array of length 16
+  count_non_empty_children: found 4 non-empty in array of length 16
+  count_non_empty_children: found 4 non-empty in array of length 16
+    parent size=4 nonempty=4
+  count_non_empty_children: found 4 non-empty in array of length 16
+  add_child Node4: storing key byte=79 ('y') at idx=3
+  Added child at 3 -> Leaf_node
+  count_non_empty_children: found 5 non-empty in array of length 16
+  add_child returned: updated_keys=[68,79,79,79,79] nonempty_children=5
+  [  yoli = hello ][  yoli = yo ][  yoli = yol ][  yoli = yolo ]Inserting: yopoearth
+  find_child Node4/16: idx=255, array_length=16
+  find_child Node4/16: not found (255)
+  INSERT Inner_node: level=0, List.nth key level = 'yopo' (first byte=79)
+  count_non_empty_children: found 5 non-empty in array of length 16
+  add_child called: key=79 parent_size=5 nonempty_children=5 keys=[68,79,79,79,79]
+  count_non_empty_children: found 5 non-empty in array of length 16
+    parent size=5 nonempty=5
+  count_non_empty_children: found 5 non-empty in array of length 16
+  add_child Node4: storing key byte=79 ('y') at idx=5
+  Added child at 5 -> Leaf_node
+  count_non_empty_children: found 6 non-empty in array of length 16
+  add_child returned: updated_keys=[68,79,79,79,79,79] nonempty_children=6
+  [  yopo = hello ][  yopo = yo ][  yopo = yol ][  yopo = yoli ][  yopo = yolo ]
+  Root node type: Searching in Node keys: [BYTE representation :[ hello]
+  BYTE representation :[ yo]
+  BYTE representation :[ yol]
+  BYTE representation :[ yoli]
+  BYTE representation :[ yolo]
+  BYTE representation :[ yopo]
+  ]
+   prefix_match_index1 node key level 0  prefix_len 0
 
-    Length of key 3
-     [ h]
-    [ w]
-    [  ]
-    Level 0
-    [  hello = hello ]Computed index =   for key byte h
-    search: find_child returned: Leaf
-    Search key h compared with h  Found 'helloworld'  10
-    Searching in Node keys: [BYTE representation :[ hello]
-    BYTE representation :[ yo]
-    BYTE representation :[ yol]
-    BYTE representation :[ yoli]
-    BYTE representation :[ yolo]
-    BYTE representation :[ yopo]
-    ]
-     prefix_match_index1 node key level 0  prefix_len 0
+  Length of key 3
+   [ h]
+  [ w]
+  [  ]
+  Level 0
+  [  hello = hello ]search: find_child returned: Leaf
+  Search key h compared with h  Found 'helloworld'  10
+  Searching in Node keys: [BYTE representation :[ hello]
+  BYTE representation :[ yo]
+  BYTE representation :[ yol]
+  BYTE representation :[ yoli]
+  BYTE representation :[ yolo]
+  BYTE representation :[ yopo]
+  ]
+   prefix_match_index1 node key level 0  prefix_len 0
 
-    Length of key 3
-     [ y]
-    [ e]
-    [  ]
-    Level 0
-    [  yo = hello ][  yo = yo ]Computed index =  for key byte y
-    search: find_child returned: Leaf
-    Search key y compared with y  Found 'yoearth'  7
-    Searching in Node keys: [BYTE representation :[ hello]
-    BYTE representation :[ yo]
-    BYTE representation :[ yol]
-    BYTE representation :[ yoli]
-    BYTE representation :[ yolo]
-    BYTE representation :[ yopo]
-    ]
-     prefix_match_index1 node key level 0  prefix_len 0
+  Length of key 3
+   [ y]
+  [ e]
+  [  ]
+  Level 0
+  [  yo = hello ][  yo = yo ]search: find_child returned: Leaf
+  Search key y compared with y  Found 'yoearth'  7
+  Searching in Node keys: [BYTE representation :[ hello]
+  BYTE representation :[ yo]
+  BYTE representation :[ yol]
+  BYTE representation :[ yoli]
+  BYTE representation :[ yolo]
+  BYTE representation :[ yopo]
+  ]
+   prefix_match_index1 node key level 0  prefix_len 0
 
-    Length of key 3
-     [ y]
-    [ e]
-    [  ]
-    Level 0
-    [  yolo = hello ][  yolo = yo ][  yolo = yol ][  yolo = yoli ][  yolo = yolo ]Computed index =  for key byte y
-    search: find_child returned: Leaf
-    Search key y compared with y  Found 'yoloearth'  9
-    Searching in Node keys: [BYTE representation :[ hello]
-    BYTE representation :[ yo]
-    BYTE representation :[ yol]
-    BYTE representation :[ yoli]
-    BYTE representation :[ yolo]
-    BYTE representation :[ yopo]
-    ]
-     prefix_match_index1 node key level 0  prefix_len 0
+  Length of key 3
+   [ y]
+  [ e]
+  [  ]
+  Level 0
+  [  yolo = hello ][  yolo = yo ][  yolo = yol ][  yolo = yoli ][  yolo = yolo ]search: find_child returned: Leaf
+  Search key y compared with y  Found 'yoloearth'  9
+  Searching in Node keys: [BYTE representation :[ hello]
+  BYTE representation :[ yo]
+  BYTE representation :[ yol]
+  BYTE representation :[ yoli]
+  BYTE representation :[ yolo]
+  BYTE representation :[ yopo]
+  ]
+   prefix_match_index1 node key level 0  prefix_len 0
 
-    Length of key 3
-     [ y]
-    [ e]
-    [  ]
-    Level 0
-    [  yol = hello ][  yol = yo ][  yol = yol ]Computed index =  for key byte y
-    search: find_child returned: Leaf
-    Search key y compared with y  Found 'yolearth'  8
-    Searching in Node keys: [BYTE representation :[ hello]
-    BYTE representation :[ yo]
-    BYTE representation :[ yol]
-    BYTE representation :[ yoli]
-    BYTE representation :[ yolo]
-    BYTE representation :[ yopo]
-    ]
-     prefix_match_index1 node key level 0  prefix_len 0
+  Length of key 3
+   [ y]
+  [ e]
+  [  ]
+  Level 0
+  [  yol = hello ][  yol = yo ][  yol = yol ]search: find_child returned: Leaf
+  Search key y compared with y  Found 'yolearth'  8
+  Searching in Node keys: [BYTE representation :[ hello]
+  BYTE representation :[ yo]
+  BYTE representation :[ yol]
+  BYTE representation :[ yoli]
+  BYTE representation :[ yolo]
+  BYTE representation :[ yopo]
+  ]
+   prefix_match_index1 node key level 0  prefix_len 0
 
-    Length of key 3
-     [ y]
-    [ e]
-    [  ]
-    Level 0
-    [  yoli = hello ][  yoli = yo ][  yoli = yol ][  yoli = yoli ]Computed index =  for key byte y
-    search: find_child returned: Leaf
-    Search key y compared with y  Found 'yoliearth'  9
-    Searching in Node keys: [BYTE representation :[ hello]
-    BYTE representation :[ yo]
-    BYTE representation :[ yol]
-    BYTE representation :[ yoli]
-    BYTE representation :[ yolo]
-    BYTE representation :[ yopo]
-    ]
-     prefix_match_index1 node key level 0  prefix_len 0
+  Length of key 3
+   [ y]
+  [ e]
+  [  ]
+  Level 0
+  [  yoli = hello ][  yoli = yo ][  yoli = yol ][  yoli = yoli ]search: find_child returned: Leaf
+  Search key y compared with y  Found 'yoliearth'  9
+  Searching in Node keys: [BYTE representation :[ hello]
+  BYTE representation :[ yo]
+  BYTE representation :[ yol]
+  BYTE representation :[ yoli]
+  BYTE representation :[ yolo]
+  BYTE representation :[ yopo]
+  ]
+   prefix_match_index1 node key level 0  prefix_len 0
 
-    Length of key 3
-     [ y]
-    [ e]
-    [  ]
-    Level 0
-    [  yopo = hello ][  yopo = yo ][  yopo = yol ][  yopo = yoli ][  yopo = yolo ][  yopo = yopo ]Computed index =  for key byte y
-    search: find_child returned: Leaf
-    Search key y compared with y  Found 'yopoearth'  9
+  Length of key 3
+   [ y]
+  [ e]
+  [  ]
+  Level 0
+  [  yopo = hello ][  yopo = yo ][  yopo = yol ][  yopo = yoli ][  yopo = yolo ][  yopo = yopo ]search: find_child returned: Leaf
+  Search key y compared with y  Found 'yopoearth'  9
 
-    === DEBUG: Children array contents ===
-    children[0]: Leaf with key=helloworld 
-    children[1]: Leaf with key=yoearth 
-    children[2]: Leaf with key=yolearth 
-    children[3]: Leaf with key=yoliearth 
-    children[4]: Leaf with key=yoloearth 
-    children[5]: Leaf with key=yopoearth 
-    children[6]: Empty
-    children[7]: Empty
-    children[8]: Empty
-    children[9]: Empty
-    children[10]: Empty
-    children[11]: Empty
-    children[12]: Empty
-    children[13]: Empty
-    children[14]: Empty
-    children[15]: Empty
-    terminate INPUT: [68,77]
-    terminate OUTPUT: [68,77,00]
-    find_child Node4/16: idx=0, array_length=16
-    find_child Node4/16: returning children[0]
-      -> was Leaf
-    terminate INPUT: [79,65]
-    terminate OUTPUT: [79,65,00]
-    find_child Node4/16: idx=1, array_length=16
-    find_child Node4/16: returning children[1]
-      -> was Leaf
-    terminate INPUT: [79,65]
-    terminate OUTPUT: [79,65,00]
-    find_child Node4/16: idx=4, array_length=16
-    find_child Node4/16: returning children[4]
-      -> was Leaf
-    terminate INPUT: [79,65]
-    terminate OUTPUT: [79,65,00]
-    find_child Node4/16: idx=2, array_length=16
-    find_child Node4/16: returning children[2]
-      -> was Leaf
-    terminate INPUT: [79,65]
-    terminate OUTPUT: [79,65,00]
-    find_child Node4/16: idx=3, array_length=16
-    find_child Node4/16: returning children[3]
-      -> was Leaf
-    terminate INPUT: [79,65]
-    terminate OUTPUT: [79,65,00]
-    find_child Node4/16: idx=5, array_length=16
-    find_child Node4/16: returning children[5]
-      -> was Leaf
-    |}]
+  === DEBUG: Children array contents ===
+  children[0]: Leaf with key=helloworld 
+  children[1]: Leaf with key=yoearth 
+  children[2]: Leaf with key=yolearth 
+  children[3]: Leaf with key=yoliearth 
+  children[4]: Leaf with key=yoloearth 
+  children[5]: Leaf with key=yopoearth 
+  children[6]: Empty
+  children[7]: Empty
+  children[8]: Empty
+  children[9]: Empty
+  children[10]: Empty
+  children[11]: Empty
+  children[12]: Empty
+  children[13]: Empty
+  children[14]: Empty
+  children[15]: Empty
+  find_child Node4/16: idx=0, array_length=16
+  find_child Node4/16: returning children[0]
+    -> was Leaf
+  find_child Node4/16: idx=1, array_length=16
+  find_child Node4/16: returning children[1]
+    -> was Leaf
+  find_child Node4/16: idx=4, array_length=16
+  find_child Node4/16: returning children[4]
+    -> was Leaf
+  find_child Node4/16: idx=2, array_length=16
+  find_child Node4/16: returning children[2]
+    -> was Leaf
+  find_child Node4/16: idx=3, array_length=16
+  find_child Node4/16: returning children[3]
+    -> was Leaf
+  find_child Node4/16: idx=5, array_length=16
+  find_child Node4/16: returning children[5]
+    -> was Leaf
+  |}]

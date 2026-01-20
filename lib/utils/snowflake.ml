@@ -1,6 +1,4 @@
-open Timedesc
 open Bigarray
-open Eio.Std
 open Int64
 open Mtime.Span
 open Eio
@@ -21,13 +19,6 @@ type node = {
 	time_shift :  int64;
 	node_shift :  int64;
 }
-
-let epoch_millis ()=
-  let timedesc = Timedesc.make_exn ~tz:(Timedesc.Time_zone.make_exn "UTC") ~year:2010 ~month:11 ~day:4 ~hour:1 ~minute:42 ~second:54 () in
-  let ordinary_timestamp =
-      (* since it is ordinary, we can get a single/unique timestamp out of it *)
-      Timedesc.to_timestamp_single timedesc
-  in ordinary_timestamp
 
 let time_since () =
   let timedesc = Timedesc.make_exn ~tz:(Timedesc.Time_zone.make_exn "UTC") ~year:2010 ~month:11 ~day:4 ~hour:1 ~minute:42 ~second:54 () in
@@ -54,7 +45,8 @@ let monotonic_clock =
    let monotonic_addtimes =
    (match (Mtime.Span.abs_diff  (Mtime.Span.of_uint64_ns (Mtime.to_uint64_ns now))  (add time_s time_ns)) with
    |  m ->  Mtime.add_span now m
-   | _ -> raise (Monotonic_clock "Date/Time error") )                 (* Throw an error ! *)
+   (* | _ -> raise (Monotonic_clock "Date/Time error")                  (\* Throw an error ! *\) *)
+   )
    in
     (match  monotonic_addtimes with
       |Some m -> Mtime.Span.of_uint64_ns (Mtime.to_uint64_ns m)
@@ -76,7 +68,6 @@ let create_snowflake_node node=
     let _ = Array1.set step_bits_a 0 Int32.( logxor
                                   (neg (of_int 1))
                                   ( shift_left (neg (of_int 1)) (to_int (Array1.get step_bits_a 0)))) in
-    let  stepmask  =  Int32.shift_left  (Array1.get node_bits_a 0) 12 in (*  step is repeated here*)
     let epoch_node = monotonic_clock  in
 
 
@@ -85,8 +76,8 @@ let create_snowflake_node node=
     {
         epoch     = Mtime.Span.to_uint64_ns epoch_node;
         node  =  node;
-        step  =  0L;(*I think  it is zero to start with*)
-        time =  0L;(*I think  it is zero to start with*)
+        step  =  0L;
+        time =  0L;
         mu        = mutex;
         nodemax   = Int64.of_int32 node_bits;
         nodemask  =  Int64.of_int32 nodemask;
@@ -98,7 +89,7 @@ let create_snowflake_node node=
 
 
 let generate n  =
-
+   Printf.printf "Generating Snowflake Id";
    Eio_main.run @@ fun env ->
    Eio.Switch.run @@ fun sw ->
    let clock = Eio.Stdenv.clock env in
@@ -108,7 +99,6 @@ let generate n  =
 
        let  gen_id  node =
          let  milli  =  time_since () in
-         let curr_time_millis  = ref   milli in
          if  Int64.equal milli node.time then(
              node.step <- Int64.logand (Int64.add node.step  (Int64.of_int 1))  node.stepmask;
 

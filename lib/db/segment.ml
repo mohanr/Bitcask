@@ -1,5 +1,3 @@
-open Wal_store.DataEntryOp
-open CCMap
 open Types
 
 exception Block_Not_Found of string
@@ -26,11 +24,11 @@ let create_new_segment (* block_offset_pair *) =
 		(* 		endoffset = Int64.add block_offset_pair.offset block_offset_pair.size }) *)
     in
     {
-	closed       =      false;
-	current_block_number = (Int64.of_int 0);
-	current_block_offset = (Int64.of_int 0);
-	blocks           =  Blockoffset m
-	}
+   	closed       =      false;
+   	current_block_number = (Int64.of_int 0);
+ 	  current_block_offset = (Int64.of_int 0);
+   	blocks           =  Blockoffset m
+ 	}
 
 let get_segment_block (db : Types.data_store) path block_number =
 	let segment = SegmentMap.find path db.segments in
