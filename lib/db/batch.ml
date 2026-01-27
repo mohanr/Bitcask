@@ -1,11 +1,11 @@
-open Bigarray
-open Bitcask__Datastore
 open Bitcask__Snowflake
+open Types
 open Containers
 open Bitcask__Murmurhash
 open Eio
 open Bin_prot.Std
 open Bigstring
+open Adaptive_radix_tree.RADIXOp
 
 exception ErrorBatchCommitted
 exception ErrorBatchRolledback
@@ -38,6 +38,7 @@ type batch = {
 	committed    :    bool;
 	rolledback   :    bool;
 }
+
 
  (* A new batch *)
 let   newbatch (module M : DATASTOREOperator) =
@@ -86,7 +87,11 @@ let batch b key value =
    )
    )
 
-let  commit b _env =
+let insert_tr (t : tree) key value =
+  let new_root = insert_tree t key value in
+  { root = new_root; size = t.size + 1 }
+
+let  commit b tree =
 
    Eio.Switch.run @@ fun sw ->
    Fiber.fork ~sw (fun () ->
@@ -105,22 +110,29 @@ let  commit b _env =
   in
    let _ = CCVector.fold ( fun buffer x ->
 
-       let buf = Bin_prot.Utils.bin_dump ~header:false bin_writer_wal_record x in
-       let _ = write_to_sink (Eio.Flow.buffer_sink buffer) (to_bytes buf) in
-       buffer
-       ) buffer b.writes_in_flight
-  in
        let buf = Bin_prot.Utils.bin_dump ~header:false bin_writer_wal_record (
                                      {
-                                       key = String.empty;
-                                       value = String.empty;
+                                       key = x.key;
+                                       value = x.value;
                                        batch_id = batch_id;
                                        wal_type = WalRecordEnd
 
                                      } ) in
-       write_to_sink (Eio.Flow.buffer_sink buffer) (to_bytes buf);
+       let() = Printf.printf "Length of WAL buffer %d" (Bigstring.length buf) in
+       let() = write_to_sink (Eio.Flow.buffer_sink buffer) (to_bytes buf) in
+       let() = Printf.printf "Inserting key: %s\n%!" x.key in
+       let indexer = insert_tr tree  [Bytes.of_string x.key]
+           Int64.(match (of_string x.value) with |Some v ->  v |None -> failwith "Invalid value") in
+        (match search_with_log_handler indexer.root [Bytes.of_string x.key] 0 with
+        | Some v -> Printf.printf " Found '%s'  %Ld\n" x.key v
+        | None -> Printf.printf " Key '%s' NOT FOUND\n" x.key
+        );
+       buffer
+       ) buffer b.writes_in_flight
+    in ()
        (* Write to WAL *)
-       (* write *)
-       (*   (Buffer.to_bytes buffer) env *)
-  )
-  )
+    )
+
+
+
+   )

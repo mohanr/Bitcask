@@ -120,3 +120,8 @@ module type RADIXOperator = sig
   val insert_tree :  tree -> Bytes.t list ->  int64 ->  node
   val search_with_log_handler : node -> Bytes.t list  -> int -> int64 option
 end
+
+module type DATASTOREOperator = sig
+  val create_data_store : string -> data_store
+  val create_entry_map  : data_store  -> string list -> int -> entry_map_value EntryMap.t
+end

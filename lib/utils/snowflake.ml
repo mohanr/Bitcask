@@ -89,7 +89,7 @@ let create_snowflake_node node=
 
 
 let generate n  =
-   Printf.printf "Generating Snowflake Id";
+   Printf.printf "Generating Snowflake Id\n";
    Eio_main.run @@ fun env ->
    Eio.Switch.run @@ fun sw ->
    let clock = Eio.Stdenv.clock env in

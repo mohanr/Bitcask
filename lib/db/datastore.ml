@@ -1,6 +1,6 @@
 open Containers
 open Eio.Std
-open Bitcask__Wal_store.DataEntryOp
+open Wal_store.DataEntryOp
 open Segment.Segment
 open Types
 
@@ -20,8 +20,6 @@ let create_entry_map = Wal.create_entry_map
 
 
 
-type data_store = Types.data_store
-
 
 let create_data_store dirpath  =
   let segment_map =
@@ -38,7 +36,6 @@ end
 
 module WalOp =
 struct
-
 type data_store = Types.data_store
 
 let deleted_flag = 98
@@ -93,11 +90,6 @@ let  _setkey_value_offset_block db key_block_offset path  =
       )
 end
 
-module type DATASTOREOperator = sig
-  type data_store = Types.data_store
-  val create_data_store : string -> data_store
-  val create_entry_map  : data_store  -> string list -> int -> entry_map_value EntryMap.t
-end
 
 module DatabaseOp =
 Database(WalOp)
