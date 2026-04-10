@@ -1,5 +1,6 @@
 open Bitcask__Datastore.DatabaseOp
 open Bitcask__Wal_store.DataEntryOp
+open Bitcask__Adaptive_radix_tree.RADIXOp
 open Bitcask__Batch
 open Bigstring
 
@@ -71,7 +72,7 @@ let%expect_test "Test Set and Get keys"=
     Timestamp :[ 8 ]
     Key Size :[ 4 ]
     Value Size :[ 8 ]
-    Crc 2560937276
+    Crc 1667700190
     Key M
     Value 4
     |}]
@@ -104,14 +105,22 @@ let%expect_test "Check sizes to decide offsets"=
 
 module DatabaseOp = Bitcask__Datastore.DatabaseOp
 
+let empty_tree =
+    let root = Empty in
+    {root = root; size = 0}
+
 let%expect_test "Batch commit and index"=
-Eio_main.run @@ fun env ->
+Eio_main.run @@ fun _env ->
   let new_batch = newbatch (module  DatabaseOp) in
   let () =  batch new_batch (Bytes.make 1 (Char.chr 1) )  "2" in
-  commit new_batch env;
+  commit new_batch empty_tree;
   [%expect {|
-    Generating Snowflake IdGenerating Snowflake Id node.step is set to 0
-     node.time is set from 0 to 480077114
+    Generating Snowflake Id
+    Generating Snowflake Id
      node.step is set to 0
-     node.time is set from 0 to 480077114
+     node.time is set from 0 to 486914206
+     node.step is set to 0
+     node.time is set from 0 to 486914206
+    Length of WAL buffer 10Inserting key: 
+    Searching leavesSearch key  compared with   Found ''  2
     |}]

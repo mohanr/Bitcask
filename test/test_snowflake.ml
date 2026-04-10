@@ -1,4 +1,4 @@
-(* open Bitcask__Snowflake *)
+open Bitcask__Snowflake
 
 (* let%expect_test _= *)
 (* (\* https://github.com/daypack-dev/timere/blob/main/examples/date_time.ml *\) *)
@@ -28,15 +28,26 @@
 (*     Fmt.pr "%Ld" millis; *)
 (*     [%expect {| 474636063 |}] *)
 
-(* let%expect_test "Test Duplicate ID"= *)
+let%expect_test "Test Duplicate ID"=
 
-(* 	let node = create_snowflake_node (Int64.of_int 0) in *)
-(* 	(\* for _ = 0 to 10 do *\) *)
+	let node = create_snowflake_node (Int64.of_int 0) in
+	for _ = 0 to 2 do
 
-(* 		let _id = generate node in *)
-(*         (); *)
-(*     (\* done; *\) *)
-(*   [%expect {| *)
-(*     node.step is set to 0 *)
-(*     node.time is set from 0 to 470674519 *)
-(*     |}] *)
+		let id = generate node in
+        let () =   (match id with |
+                            Ok v -> Printf.printf "ID generated is %Ld" v;|
+                            Error _ -> failwith
+                                         "Unable to get snowflake id");
+       in ()
+    done;
+
+  [%expect {|
+    Generating Snowflake Id
+    ID generated is 486914206Generating Snowflake Id
+    ID generated is 486914207Generating Snowflake Id
+     node.step is set to 0
+     node.time is set from 0 to 486914206
+     node.step  0
+     node.step  0
+    ID generated is 486914208
+    |}]

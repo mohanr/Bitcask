@@ -60,11 +60,8 @@ let new_node4() =
     Printf.eprintf "ERROR: Created node4 with %d non-empty children!\n%!" count;
 
 	let inn = (
-		 (* Prefix ((List.map List.hd (char_list_to_byte_list b)), 0 , 0), (\*  Redundant *\) *)
-
 		 Prefix (List.hd (char_list_to_byte_list b), 0 , 0),
 		 Node4 node4,
-         (* List.map List.hd (char_list_to_byte_list b1), *)
          keys,
          children)
 	in
@@ -72,7 +69,7 @@ let new_node4() =
 
 let new_node16() =
 	let b = Bytes.create max_prefix_len |> Bytes.to_seq |> List.of_seq in
-    let children = CCArray.make node16max Empty in  (* Explicit array *)
+    let children = CCArray.make node16max Empty in
     let count = count_non_empty_children children in
     if count <> 0 then
     Printf.eprintf "ERROR: Created node4 with %d non-empty children!\n%!" count;
@@ -87,7 +84,7 @@ let new_node16() =
 
 let new_node48() =
 	let b = Bytes.create max_prefix_len |> Bytes.to_seq |> List.of_seq in
-    let children = CCArray.make node48max Empty in  (* Explicit array *)
+    let children = CCArray.make node48max Empty in
     let count = count_non_empty_children children in
     if count <> 0 then
     Printf.eprintf "ERROR: Created node4 with %d non-empty children!\n%!" count;
@@ -97,7 +94,7 @@ let new_node48() =
 
 let new_node256() =
 	let b = Bytes.create max_prefix_len |> Bytes.to_seq |> List.of_seq in
-    let children = CCArray.make node256max Empty in  (* Explicit array *)
+    let children = CCArray.make node256max Empty in
     let count = count_non_empty_children children in
     if count <> 0 then
     Printf.eprintf "ERROR: Created node4 with %d non-empty children!\n%!" count;
@@ -121,20 +118,21 @@ let index n key =
   match n with
   | (meta, node_type, keys, _) ->
     match node_type with
-    | Node4 _ | Node16 _ ->
+| Node4 _ | Node16 _ ->
+
       (match meta with
        | Prefix (_, size, _) ->
-         let rec loop j_dx =
-           if j_dx < size then
-             let () = Printf.printf "[  %s = %s ]"  (Bytes.to_string  key ) (Bytes.to_string (List.nth keys j_dx)) in
-             if Bytes.compare (List.nth keys j_dx) key = 0 then
-               Char.chr j_dx   (* return position as char *)
-             else
-               loop (j_dx + 1)
-           else
-             Char.chr 255  (* not found *)
-         in
-         loop 0
+          let rec loop j_dx =
+            if j_dx < size then
+
+              if (Bytes.get_uint8 key 0)  = (Bytes.get_uint8 (List.nth keys j_dx) 0) in
+                Char.chr j_dx
+              else
+                loop (j_dx + 1)
+            else
+              Char.chr 255
+          in
+          loop 0
       )
     | Leaf _ -> failwith "Not expecting a leaf"
     | Node48 _ ->
@@ -152,9 +150,9 @@ let index n key =
                byte_key (map_byte - 1);
              Char.chr (map_byte - 1)
            ))
-          |  Node256 _ ->
+     |  Node256 _ ->
             let () = Printf.printf "Node256 [  %c  ]" (Char.chr (Bytes.get_uint8 key 0  )) in  (* or just key.[0] *)
-            (Char.chr (Bytes.get_uint8 key 0))  (* or just key.[0] *)
+            (Char.chr (Bytes.get_uint8 key 0))
 
 
       (* |Node16  _ -> *)
@@ -384,16 +382,27 @@ let rec add_child key parent child =
 	   match node_type with
        | Node4 _ ->
         let (  _, node_type,  n_4keys,  n_4children) = parent in
-        (match meta with
+
+        let existing_idx = Char.code (index parent key) in
+        Printf.eprintf "DEBUG: Checking key %02X against existing keys: [%s]\n%!"
+       (Bytes.get_uint8 key 0)
+       (String.concat ", " (List.map (fun k -> Printf.sprintf "%02X" (Bytes.get_uint8 k 0)) n_4keys));
+        if existing_idx <> 255 then (
+          n_4children.(existing_idx) <- child;
+          let updated_keys = List.mapi (fun i k -> if i = existing_idx then key else k) n_4keys in
+          (meta, node_type, updated_keys, n_4children)
+        ) else (
+          match meta with
           | Prefix (l, _, i2) ->
-        let active_keys = List.filteri (fun i _ -> i < size) n_4keys in
+            let active_keys = List.filteri (fun i _ -> i < size) n_4keys in
         let idx =
             let rec loop_while id_x= (* TODO Check the spec. of 'compare' *)
-            if id_x < List.length active_keys && Bytes.compare key (List.nth active_keys id_x) > 0 then(
-                 loop_while (id_x + 1))
-               else  id_x
+            if (id_x < List.length active_keys) && ((Bytes.get_uint8 key 0) >
+                                                   (Bytes.get_uint8 (List.nth active_keys id_x) 0)) then
+                 loop_while (id_x + 1)
+            else  id_x
              in
-             loop_while 0;
+             loop_while 0
              in
      let rec split_at i acc = function
        | [] -> (List.rev acc, [])
@@ -445,13 +454,22 @@ let rec add_child key parent child =
                  n_4children)
       ))
        | Node16 _ ->
-    let (_, node_type, n16_keys, n16_children) = parent in
-    (match meta with
-     | Prefix (l, size, i2) ->
+        let (_, node_type, n16_keys, n16_children) = parent in
+
+        (* 1. Check if the byte already exists *)
+        let existing_idx = Char.code (index parent key) in
+        if existing_idx <> 255 then (
+          n16_children.(existing_idx) <- child;
+          let updated_keys = List.mapi (fun i k -> if i = existing_idx then key else k) n16_keys in
+          (meta, node_type, updated_keys, n16_children)
+        )
+         else (
+          match meta with
+          | Prefix (l, size, i2) ->
 
        let rec find_idx i =
          if i >= size then size
-         else if Bytes.compare key (List.nth n16_keys i) < 0 then i
+         else if (Bytes.get_uint8 key 0) < (Bytes.get_uint8 (List.nth n16_keys i) 0) then i
          else find_idx (i + 1)
        in
        let idx = find_idx 0 in
@@ -466,12 +484,14 @@ let rec add_child key parent child =
        (Bytes.get_uint8 key 0)
        (Char.chr (Bytes.get_uint8 key 0))
        idx;
-       let rec loop_while i =
-          if i >=  idx + 1 then(
-                let () = Array.set n16_children i (Array.get n16_children (i-1)) in
-                loop_while (i - 1);
-          ) else ()
-      in loop_while size;
+       if size < Array.length n16_children then (
+         let rec loop_while i =
+           if i >= idx + 1 then (
+             Array.set n16_children i (Array.get n16_children (i-1));
+             loop_while (i - 1)
+           ) else ()
+         in loop_while size
+       );
           Array.set n16_children idx  child;
 
           Printf.eprintf "Added child at %d -> %s\n%!" idx
@@ -675,12 +695,12 @@ let  prefix_match_index1 inner_node key level =
              loop_while 0 prefix
     )
     in id_x
+
+
 let  prefix_match_index l kv level =
     match l with
     |KeyValue kv1 ->
-
-    let limit = Int.min (List.length kv1.key - level)
-                        (List.length kv.key) - level
+    let limit = (Int.min (List.length kv1.key) (List.length kv.key)) - level
     in
     let result =
     let rec loop_while i  =
@@ -700,8 +720,18 @@ let copy key_list_src key_list_dest level =
    List.mapi (fun j el -> if j <= level then
                           el
                           else (List.nth  key_list_dest j)) key_list_src(* TODO Array is mutable*)
+let key_bytes key =
+
+  let rec expand key acc =
+    match List.rev key with
+    | [] ->  acc
+    | h::t -> expand t (List.append (List.init (Bytes.length h)
+                                       (fun i -> Bytes.make 1 (Bytes.get h i))) acc)
+  in expand key []
+
 
 let terminate key =
+  let key = key_bytes key in
 
   let result = match (List.find_index (fun elt ->
     Bytes.compare (Bytes.make 1 '\x00') elt == 0) key) with
@@ -710,7 +740,8 @@ let terminate key =
   in
 
   result
-(* Get the byte at 'level' from a flattened key *)
+
+
 let rec insert (tr : tree) node key value level  =
 
   (match node with
@@ -756,6 +787,9 @@ let rec insert (tr : tree) node key value level  =
                      Printf.eprintf "INSERT: new_level=%d\n%!" new_level;
                      Printf.eprintf "INSERT: old_key length=%d, new_key length=%d\n%!"
                         (List.length kv.key) (List.length key);
+                     Printf.eprintf "FULL KEY: [%s] | LEVEL: %d\n%!"
+                       (String.concat ";" (List.map (fun b -> Printf.sprintf "%02X" (Bytes.get_uint8 b 0)) key))
+                       level;
                      if new_level >= List.length kv.key || new_level >= List.length key then (
                        Printf.eprintf "ERROR: new_level=%d exceeds key length!\n%!" new_level;
                        failwith "Key too short for level"
@@ -770,10 +804,9 @@ let rec insert (tr : tree) node key value level  =
                        (Bytes.get_uint8 new_key_byte 0);
 
                      let parent = (
-                       Prefix (List.hd (char_list_to_byte_list
-                         (Bytes.create max_prefix_len |> Bytes.to_seq |> List.of_seq)),
-                         0,  (* size starts at 0 *)
-                         limit),  (* prefix_len is the shared part *)
+                       Prefix (shared_prefix,
+                         0,
+                         limit),
                        Node4 node4,
                        keys,
                        children
@@ -828,18 +861,28 @@ Printf.eprintf "INSERT Leaf split: new_level=%d, old_key_byte='%s' (byte=%02X), 
                                   keys,
                                   children) in
                                   if prefix_len < max_prefix_len then(
-                                      let _ = add_child (List.nth prefix_in prefix_match_result) new_node4 node in
                                       let copied_prefix = copy prefix_in (List.filteri (fun i _ -> i >= (prefix_match_result+1) && i < (List.length prefix_in )) prefix_in)  (Int.min prefix_len_in max_prefix_len) in
-                                      let new_node4=
+                                      let old_child=
                                                (
                                                Prefix (copied_prefix, i1_in,  prefix_len_in - (prefix_match_result + 1)) ,
                                                node_type_in,
                                                keys_in,
                                                children_in)
                                   in
+                                  let parent_with_old_child =
+                                    add_child
+                                      (List.nth prefix_in prefix_match_result)
+                                      new_node4
+                                      (Inner_node old_child)
+                                  in
                                   let kv = {key = key; value = value }in
                                   let new_leaf = KeyValue kv in
-                                  let changed_node = add_child_logged (List.nth key (level + prefix_match_result)) new_node4 (Leaf new_leaf) in
+                                  let changed_node =
+                                    add_child_logged
+                                      (List.nth key (level + prefix_match_result))
+                                      parent_with_old_child
+                                      (Leaf new_leaf)
+                                  in
                                   (false, Inner_node changed_node)
                                   )
                                   else(
@@ -849,44 +892,83 @@ Printf.eprintf "INSERT Leaf split: new_level=%d, old_key_byte='%s' (byte=%02X), 
                                         |Leaf l ->
                                          match l with
                                          |KeyValue kv ->
-                                      let _ = add_child (List.nth kv.key (level + prefix_match_result)) new_node4 node in
-
                                       let copied_prefix = copy prefix_in (List.filteri (fun i _ -> i >= (prefix_match_result + level + 1) && i < (List.length kv.key )) kv.key)  (Int.min prefix_len_in max_prefix_len) in
-                                      let new_node4=
+                                      let old_child=
                                                (
                                                Prefix (copied_prefix, i1_in,  prefix_len_in) ,
                                                node_type_in,
                                                keys_in,
                                                children_in)
                                          in
+                                         let parent_with_old_child =
+                                           add_child
+                                             (List.nth kv.key (level + prefix_match_result))
+                                             new_node4
+                                             (Inner_node old_child)
+                                         in
                                          let kv = {key = key; value = value }in
                                          let new_leaf = KeyValue kv in
-                                         let changed_node = add_child (List.nth key (level + prefix_match_result)) new_node4 (Leaf new_leaf) in
+                                         let changed_node =
+                                           add_child
+                                             (List.nth key (level + prefix_match_result))
+                                             parent_with_old_child
+                                             (Leaf new_leaf)
+                                         in
                                          (false, Inner_node changed_node)
                                   )
                          )
                         )
-                        else (false, Inner_node inn)
+                        else
+                          let level = level + prefix_len_in in
+                          let kv = {key = key; value = value } in
+                          let new_leaf = KeyValue kv in
+                          if level >= List.length key then
+                            failwith "Key exhausted during prefix match"
+                          else
+                            Printf.eprintf "DEBUG: Level=%d, Looking for byte: %02X\n%!"
+                              level (Bytes.get_uint8 (List.nth key level) 0);
+
+                            let next = find_child inn (List.nth key level) in
+                            Printf.eprintf "INSERT Inner_node: level=%d, byte=%02X\n%!"
+                                           level (Bytes.get_uint8 (List.nth key level) 0);
+                            (match next with
+                             | Empty ->
+                                 let modified_node = add_child_logged (List.nth key level) inn (Leaf new_leaf) in
+                                 (false, Inner_node modified_node)
+                             | _ ->
+                                 let _, updated_child = insert tr next key value (level + 1) in
+                                 let modified_node =
+                                   add_child_logged (List.nth key level) inn updated_child
+                                 in
+                                 (false, Inner_node modified_node))
 
              ) else
 
              let level = level + prefix_len_in in
+             let kv = {key = key; value = value } in
+             let new_leaf = KeyValue kv in
+             if level >= List.length key then
+               failwith "Key exhausted during prefix match"
+             else
+               Printf.eprintf "DEBUG: Level=%d, Looking for byte: %02X\n%!"
+                 level (Bytes.get_uint8 (List.nth key level) 0);
 
-             let kv = {key = key; value = value }in
-             let new_leaf = KeyValue kv in (*TODO Remove duplicate Construction of new_leaf*)
-          let next = find_child inn (List.nth  key level ) in
-    Printf.eprintf "INSERT Inner_node: level=%d, List.nth key level = '%s' (first byte=%02X)\n%!"
-      level
-      (Bytes.to_string (List.nth key level))
-      (Bytes.get_uint8 (List.nth key level) 0);
-             (match next with
-             | Empty  ->  let modified_node = add_child_logged (List.nth  key level ) inn (Leaf new_leaf) in (false,Inner_node modified_node)
-             | _ ->  insert tr  next key value (level+1)
+               let next = find_child inn (List.nth key level) in
+               Printf.eprintf "INSERT Inner_node: level=%d, byte=%02X\n%!"
+                              level (Bytes.get_uint8 (List.nth key level) 0);
+               (match next with
+                | Empty ->
+                    let modified_node = add_child_logged (List.nth key level) inn (Leaf new_leaf) in
+                    (false, Inner_node modified_node)
+                | _ ->
+                    let _, updated_child = insert tr next key value (level + 1) in
+                    let modified_node =
+                      add_child_logged (List.nth key level) inn updated_child
+                    in
+                    (false, Inner_node modified_node))
 
-             )
     )
 
-(* Size is not updated now TODO  *)
 let insert_tree tree key value =
 	let key = terminate key in
 
@@ -914,21 +996,15 @@ let rec search node key level =
           |( meta, _,_,_ ) ->
                  (match meta with
                  | Prefix (_, _, prefix_len) ->
-                 let pmi =  prefix_match_index1 node key level in
-                 let() = Printf.printf " prefix_match_index1 node key level %d  prefix_len %d\n" pmi prefix_len in
-                 if prefix_match_index1 node key level != prefix_len then
-                     None
-                 else
-                     let level = level + prefix_len in
-                     let () = Fmt.pr "\nLength of key %d\n "  (List.length key) in
-                     let () = List.iter ( fun k ->
-                        Fmt.pr "[ %c]\n" (Char.chr (Bytes.get_uint8  k 0))
-                      ) key in
-                     Printf.printf "Level %d\n" level;
-                     if level >= (List.length key) then
-                       None
-                     else
-                     let child = find_child n (List.nth  key level ) in
+                    let pmi = prefix_match_index1 node key level in
+                    if pmi <> prefix_len then
+                        None (* Key doesn't match the compressed prefix *)
+                    else
+                        let level = level + prefix_len in
+                        if level >= List.length key then
+                            None (* Key is too short for a child lookup *)
+                        else
+                            let child = find_child n (List.nth key level) in
                      Printf.printf "search: find_child returned: ";
                      (match child with
                       | Empty -> Printf.printf "Empty\n"
@@ -984,7 +1060,6 @@ let search_with_log_handler  node key level =
       | _ -> None
       );
  }
-
 
 end
 
